@@ -10,8 +10,8 @@
 专为 ARM64 嵌入式设备（如 OpenWrt 软路由、树莓派）优化，同时也完美支持 PC 和服务器。
 
 ### 🌐 在线体验
-**[http://112.126.74.91:8888/](http://112.126.74.91:8888/)** - 立即体验，无需安装
-<img width="2552" height="1314" alt="FR" src="https://github.com/user-attachments/assets/4144584b-ca15-4e6c-b810-7cd729ddd7a9" />
+**[http://112.126.74.91/](http://112.126.74.91/)** - 立即体验，无需安装
+<img width="2552" height="1314" alt="FR" src="https://github.com/user-attachments/assets/4144584b-ca15-4e6c-b810-7cd729ddd7a9" />  
 
 
 *© 2025 File-Rocket • Designed for Speed*
@@ -31,7 +31,7 @@
 
 ## 📦 部署指南 (Docker)
 
-> 💡 **提示**：不想自己部署？直接访问 [在线体验地址](http://112.126.74.91:8888/) 试用！
+> 💡 **提示**：不想自己部署？直接访问 [在线体验地址](http://112.126.74.91/) 试用！
 
 我们强烈推荐直接使用 Docker 部署，这是最快、最稳定的方式。
 
