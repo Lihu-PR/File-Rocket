@@ -35,6 +35,7 @@
 > 💡 **提示**：不想自己部署？直接访问 [在线体验地址](https://file-rocket.top/) [备用地址(高速)](https://file-rocket.tech/)试用！(仅作演示 推荐个人部署)
 
 我们强烈推荐直接使用 Docker 部署，这是最快、最稳定的方式。
+Docker安装及配置教程:[哩虎的技术博客-Docker安装及配置](https://lihu.site/archives/docker-install)
 
 ### 1️⃣ 快速启动 (推荐)
 
