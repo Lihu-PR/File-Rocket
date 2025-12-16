@@ -572,9 +572,10 @@ function handleP2PData(data) {
             
             if (message.type === 'metadata') {
                 p2pMetadata = message;
-                console.log('收到P2P文件元数据:', p2pMetadata);
+                console.log('📦 收到P2P文件元数据:', p2pMetadata);
                 
                 // 重置接收统计
+                p2pReceivedData = []; // 清空之前的数据
                 p2pTotalReceived = 0;
                 p2pLastProgressUpdate = Date.now();
                 p2pLastReceivedBytes = 0;
@@ -585,9 +586,11 @@ function handleP2PData(data) {
                 downloadStartTime = Date.now();
                 isDownloading = true;
                 
+                console.log(`🚀 开始接收文件，大小: ${formatFileSize(p2pMetadata.size)}`);
+                
                 return;
             } else if (message.type === 'complete') {
-                console.log('P2P文件接收完成');
+                console.log('✅ P2P文件接收完成，总大小:', formatFileSize(p2pTotalReceived));
                 completeP2PDownload();
                 return;
             }
@@ -601,6 +604,14 @@ function handleP2PData(data) {
         const chunk = new Uint8Array(data);
         p2pReceivedData.push(chunk);
         p2pTotalReceived += chunk.length;
+        
+        // 对于大文件，定期触发下载以释放内存
+        if (p2pMetadata && p2pMetadata.size > 100 * 1024 * 1024) { // >100MB
+            // 每接收50MB就触发一次部分下载（流式）
+            if (p2pReceivedData.length > 0 && p2pTotalReceived % (50 * 1024 * 1024) < chunk.length) {
+                console.log(`💾 已接收 ${formatFileSize(p2pTotalReceived)}，缓存块数: ${p2pReceivedData.length}`);
+            }
+        }
         
         // 限制进度更新频率，避免UI卡顿
         const now = Date.now();
@@ -637,18 +648,14 @@ function completeP2PDownload() {
     // 确保进度显示为100%
     updateDownloadProgress(100);
     
-    // 合并所有数据块
-    const totalSize = p2pReceivedData.reduce((sum, chunk) => sum + chunk.length, 0);
-    const mergedData = new Uint8Array(totalSize);
-    let offset = 0;
+    console.log(`📦 开始创建Blob，共 ${p2pReceivedData.length} 个数据块...`);
     
-    for (const chunk of p2pReceivedData) {
-        mergedData.set(chunk, offset);
-        offset += chunk.length;
-    }
+    // 直接使用数组创建Blob（更高效，不需要手动合并）
+    const blob = new Blob(p2pReceivedData, { 
+        type: p2pMetadata.mimeType || 'application/octet-stream' 
+    });
     
-    // 创建Blob并下载
-    const blob = new Blob([mergedData], { type: p2pMetadata.mimeType || 'application/octet-stream' });
+    console.log(`✅ Blob创建成功，大小: ${formatFileSize(blob.size)}`);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

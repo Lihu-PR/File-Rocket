@@ -369,16 +369,24 @@ class P2PFileTransfer {
             if (this.dataChannel.readyState === 'open') {
                 // 控制发送速率，避免缓冲区溢出
                 const bufferedAmount = this.dataChannel.bufferedAmount;
-                const maxBuffered = 16 * 1024 * 1024; // 16MB缓冲上限
+                const maxBuffered = 8 * 1024 * 1024; // 降低到8MB缓冲上限
                 
                 if (bufferedAmount > maxBuffered) {
-                    // 如果缓冲区太满，延迟发送
-                    setTimeout(() => reader.onload(e), 10);
+                    // 如果缓冲区太满，等待更长时间
+                    console.log(`⚠️ 缓冲区使用: ${(bufferedAmount / 1024 / 1024).toFixed(2)}MB，等待清空...`);
+                    setTimeout(() => reader.onload(e), 100); // 增加到100ms
                     return;
                 }
                 
-                this.dataChannel.send(e.target.result);
-                offset += e.target.result.byteLength;
+                try {
+                    this.dataChannel.send(e.target.result);
+                    offset += e.target.result.byteLength;
+                } catch (error) {
+                    console.error('❌ 发送数据失败:', error);
+                    // 等待后重试
+                    setTimeout(() => reader.onload(e), 100);
+                    return;
+                }
                 
                 // 限制进度更新频率，避免UI卡顿
                 const now = Date.now();
