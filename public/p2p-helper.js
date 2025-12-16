@@ -28,23 +28,51 @@ class P2PFileTransfer {
     
     // 设置Socket监听器
     setupSocketListeners() {
-        this.socket.on('p2p-offer', async (data) => {
+        // 先移除旧的监听器，避免重复监听
+        this.socket.off('p2p-offer');
+        this.socket.off('p2p-answer');
+        this.socket.off('p2p-ice-candidate');
+        
+        // 创建绑定到当前实例的处理函数
+        this.offerHandler = async (data) => {
+            console.log('[P2P] 收到Offer事件，pickupCode:', data.pickupCode, '当前pickupCode:', this.pickupCode, 'isSender:', this.isSender);
             if (data.pickupCode === this.pickupCode && !this.isSender) {
-                await this.handleOffer(data.offer);
+                console.log('[P2P] 条件匹配，处理Offer');
+                try {
+                    await this.handleOffer(data.offer);
+                } catch (error) {
+                    console.error('[P2P] 处理Offer失败:', error);
+                }
+            } else {
+                console.log('[P2P] 条件不匹配，忽略Offer');
             }
-        });
+        };
         
-        this.socket.on('p2p-answer', async (data) => {
+        this.answerHandler = async (data) => {
+            console.log('[P2P] 收到Answer事件');
             if (data.pickupCode === this.pickupCode && this.isSender) {
-                await this.handleAnswer(data.answer);
+                try {
+                    await this.handleAnswer(data.answer);
+                } catch (error) {
+                    console.error('[P2P] 处理Answer失败:', error);
+                }
             }
-        });
+        };
         
-        this.socket.on('p2p-ice-candidate', async (data) => {
+        this.candidateHandler = async (data) => {
+            console.log('[P2P] 收到ICE候选事件');
             if (data.pickupCode === this.pickupCode) {
-                await this.handleIceCandidate(data.candidate);
+                try {
+                    await this.handleIceCandidate(data.candidate);
+                } catch (error) {
+                    console.error('[P2P] 处理ICE候选失败:', error);
+                }
             }
-        });
+        };
+        
+        this.socket.on('p2p-offer', this.offerHandler);
+        this.socket.on('p2p-answer', this.answerHandler);
+        this.socket.on('p2p-ice-candidate', this.candidateHandler);
     }
     
     // 初始化P2P连接（发送方）
@@ -372,11 +400,26 @@ class P2PFileTransfer {
     
     // 关闭连接
     close() {
+        console.log('[P2P] 关闭P2P连接');
+        
+        // 移除Socket监听器
+        if (this.offerHandler) {
+            this.socket.off('p2p-offer', this.offerHandler);
+        }
+        if (this.answerHandler) {
+            this.socket.off('p2p-answer', this.answerHandler);
+        }
+        if (this.candidateHandler) {
+            this.socket.off('p2p-ice-candidate', this.candidateHandler);
+        }
+        
+        // 关闭数据通道
         if (this.dataChannel) {
             this.dataChannel.close();
             this.dataChannel = null;
         }
         
+        // 关闭PeerConnection
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;

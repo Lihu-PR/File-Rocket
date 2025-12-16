@@ -203,10 +203,12 @@ function setupSocketListeners() {
         
         // 如果是P2P模式，初始化P2P接收
         if (mode === 'p2p') {
+            console.log('[P2P] 初始化P2P接收端，pickupCode:', currentPickupCode);
             const p2p = new P2PFileTransfer(socket);
             window.currentP2P = p2p;
             
             receiverNATInfo = await p2p.initReceiver(currentPickupCode);
+            console.log('[P2P] NAT检测完成，pickupCode已设置为:', p2p.pickupCode);
             
             // 发送接收端NAT信息到服务器
             socket.emit('p2p-nat-info', {
