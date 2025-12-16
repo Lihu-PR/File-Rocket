@@ -303,8 +303,14 @@ io.on('connection', (socket) => {
     const session = activeSessions.get(pickupCode);
     
     if (session && session.receiverId === socket.id) {
-        // 仅记录日志，实际传输由HTTP请求触发
-        console.log(`[${pickupCode}] 接收方点击接收，准备发起HTTP请求`);
+        console.log(`[${pickupCode}] 接收方确认接收 (模式: ${session.transferMode})`);
+        
+        // P2P模式下，通知发送端可以开始P2P传输了
+        if (session.transferMode === 'p2p' && session.senderSocket) {
+            session.senderSocket.emit('receiver-ready-p2p', { pickupCode });
+            console.log(`[${pickupCode}] 通知发送端：接收端P2P已准备好`);
+        }
+        // 其他模式由HTTP请求触发
     }
   });
 

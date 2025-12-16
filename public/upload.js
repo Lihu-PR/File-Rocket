@@ -609,6 +609,21 @@ function setupSocketListeners() {
         }, 500);
     });
     
+    // P2P模式：接收端准备好了
+    socket.on('receiver-ready-p2p', (data) => {
+        const { pickupCode: readyPickupCode } = data;
+        
+        // 验证是否属于当前房间
+        if (readyPickupCode && readyPickupCode !== pickupCode) {
+            console.log(`[房间隔离] 忽略不属于当前房间的P2P就绪: ${readyPickupCode} (当前: ${pickupCode})`);
+            return;
+        }
+        
+        console.log(`[${pickupCode}] 接收端P2P已准备好，等待WebRTC连接建立...`);
+        statusText.textContent = '接收端已准备，正在建立P2P连接...';
+        // WebRTC连接会自动建立，数据通道打开后会触发onChannelOpen
+    });
+    
     // 接收方下载完成确认
     socket.on('transfer-complete', (data) => {
         const { pickupCode: completePickupCode } = data;

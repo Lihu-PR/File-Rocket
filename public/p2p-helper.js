@@ -8,11 +8,19 @@ class P2PFileTransfer {
         this.isSender = false;
         this.natType = null;
         
-        // STUN 服务器列表
+        // STUN/TURN 服务器列表（增加更多服务器提高成功率）
         this.iceServers = [
+            // Google STUN服务器
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+            // 其他公共STUN服务器
+            { urls: 'stun:stun.stunprotocol.org:3478' },
+            { urls: 'stun:stun.voip.blackberry.com:3478' }
+            // 注意：如果需要支持对称型NAT，需要添加TURN服务器
+            // { urls: 'turn:your-turn-server.com:3478', username: 'user', credential: 'pass' }
         ];
         
         this.setupSocketListeners();
@@ -59,9 +67,15 @@ class P2PFileTransfer {
         
         this.setupDataChannel();
         
-        // 创建Offer
-        const offer = await this.peerConnection.createOffer();
+        // 创建Offer（使用更激进的ICE策略）
+        const offer = await this.peerConnection.createOffer({
+            offerToReceiveAudio: false,
+            offerToReceiveVideo: false,
+            iceRestart: false
+        });
         await this.peerConnection.setLocalDescription(offer);
+        
+        console.log('Offer已创建并设置为本地描述');
         
         // 发送Offer给接收方
         this.socket.emit('p2p-offer', {
@@ -86,17 +100,29 @@ class P2PFileTransfer {
     // 创建PeerConnection
     createPeerConnection() {
         this.peerConnection = new RTCPeerConnection({
-            iceServers: this.iceServers
+            iceServers: this.iceServers,
+            // 优化ICE配置
+            iceCandidatePoolSize: 10, // 预先收集候选
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
         });
         
-        // 监听ICE候选
+        // 监听ICE候选（Trickle ICE：边收集边发送）
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log('发送ICE候选:', event.candidate.type);
                 this.socket.emit('p2p-ice-candidate', {
                     pickupCode: this.pickupCode,
                     candidate: event.candidate
                 });
+            } else {
+                console.log('ICE候选收集完成');
             }
+        };
+        
+        // 监听ICE连接状态
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE连接状态:', this.peerConnection.iceConnectionState);
         };
         
         // 监听连接状态
@@ -106,11 +132,21 @@ class P2PFileTransfer {
             if (this.onConnectionStateChange) {
                 this.onConnectionStateChange(this.peerConnection.connectionState);
             }
+            
+            // 连接失败时的处理
+            if (this.peerConnection.connectionState === 'failed' || 
+                this.peerConnection.connectionState === 'disconnected') {
+                console.error('P2P连接失败或断开');
+                if (this.onError) {
+                    this.onError(new Error('P2P连接失败'));
+                }
+            }
         };
         
         // 接收方监听数据通道
         if (!this.isSender) {
             this.peerConnection.ondatachannel = (event) => {
+                console.log('接收到数据通道');
                 this.dataChannel = event.channel;
                 this.setupDataChannel();
             };
@@ -150,29 +186,42 @@ class P2PFileTransfer {
     
     // 处理Offer
     async handleOffer(offer) {
+        console.log('收到Offer，创建PeerConnection');
         this.createPeerConnection();
         
-        await this.peerConnection.setRemoteDescription(offer);
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+        console.log('远程描述已设置');
         
         const answer = await this.peerConnection.createAnswer();
         await this.peerConnection.setLocalDescription(answer);
+        console.log('Answer已创建并设置为本地描述');
         
         // 发送Answer
         this.socket.emit('p2p-answer', {
             pickupCode: this.pickupCode,
             answer: answer
         });
+        console.log('Answer已发送');
     }
     
     // 处理Answer
     async handleAnswer(answer) {
-        await this.peerConnection.setRemoteDescription(answer);
+        console.log('收到Answer，设置远程描述');
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        console.log('Answer已设置，等待ICE连接建立');
     }
     
     // 处理ICE候选
     async handleIceCandidate(candidate) {
-        if (this.peerConnection) {
-            await this.peerConnection.addIceCandidate(candidate);
+        if (this.peerConnection && this.peerConnection.remoteDescription) {
+            try {
+                await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log('ICE候选已添加:', candidate.type);
+            } catch (error) {
+                console.error('添加ICE候选失败:', error);
+            }
+        } else {
+            console.warn('PeerConnection未就绪，无法添加ICE候选');
         }
     }
     
@@ -254,19 +303,34 @@ class P2PFileTransfer {
         readSlice();
     }
     
-    // NAT类型检测
+    // NAT类型检测（优化版：更快速）
     async detectNATType() {
         try {
             const pc = new RTCPeerConnection({ iceServers: this.iceServers });
             
             // 收集ICE候选
             const candidates = [];
+            let hasHost = false;
+            let hasSrflx = false;
+            let hasRelay = false;
             
             await new Promise((resolve) => {
                 pc.onicecandidate = (event) => {
                     if (event.candidate) {
                         candidates.push(event.candidate);
+                        const candidateStr = event.candidate.candidate;
+                        
+                        // 快速检测候选类型
+                        if (candidateStr.includes('typ host')) hasHost = true;
+                        if (candidateStr.includes('typ srflx')) hasSrflx = true;
+                        if (candidateStr.includes('typ relay')) hasRelay = true;
+                        
+                        // 如果已经收集到足够的信息，提前结束（优化速度）
+                        if (hasSrflx || hasRelay || (hasHost && candidates.length >= 2)) {
+                            setTimeout(resolve, 500); // 等待500ms看是否有更多候选
+                        }
                     } else {
+                        // ICE收集完成
                         resolve();
                     }
                 };
@@ -274,19 +338,14 @@ class P2PFileTransfer {
                 pc.createDataChannel('test');
                 pc.createOffer().then(offer => pc.setLocalDescription(offer));
                 
-                // 5秒超时
-                setTimeout(resolve, 5000);
+                // 缩短超时时间到2秒（更快）
+                setTimeout(resolve, 2000);
             });
             
             pc.close();
             
-            // 分析候选类型
-            const hasHost = candidates.some(c => c.candidate.includes('typ host'));
-            const hasSrflx = candidates.some(c => c.candidate.includes('typ srflx'));
-            const hasRelay = candidates.some(c => c.candidate.includes('typ relay'));
-            
             // NAT类型判断（支持NAT0/1/2/3/4）
-            if (hasHost && !hasSrflx) {
+            if (hasHost && !hasSrflx && !hasRelay) {
                 this.natType = { type: 'NAT0', name: '公网IP', success: 95 };
             } else if (hasSrflx) {
                 const srflxCount = candidates.filter(c => c.candidate.includes('typ srflx')).length;
@@ -303,7 +362,7 @@ class P2PFileTransfer {
                 this.natType = { type: 'NAT4', name: '对称型NAT', success: 20 };
             }
             
-            console.log('NAT类型检测结果:', this.natType);
+            console.log('NAT类型检测结果:', this.natType, `(收集到${candidates.length}个候选)`);
             
         } catch (error) {
             console.error('NAT检测失败:', error);
