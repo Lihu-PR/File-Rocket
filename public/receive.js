@@ -192,6 +192,8 @@ function setupSocketListeners() {
     socket.on('file-info', async (fileInfo) => {
         const { pickupCode: infoPickupCode, name, size, type, mode } = fileInfo;
         
+        console.log('📥 [接收端] 收到file-info事件:', { pickupCode: infoPickupCode, mode, name, size });
+        
         // 严格验证：只接收属于当前房间的文件信息
         if (infoPickupCode && infoPickupCode !== currentPickupCode) {
             console.log(`[房间隔离] 忽略不属于当前房间的文件信息: ${infoPickupCode} (当前: ${currentPickupCode})`);
@@ -201,14 +203,18 @@ function setupSocketListeners() {
         expectedFileInfo = { name, size, type };
         transferMode = mode || transferMode || 'memory';
         
+        console.log('🔄 [接收端] 传输模式设置为:', transferMode);
+        
         // 如果是P2P模式，初始化P2P接收
         if (mode === 'p2p') {
-            console.log('[P2P] 初始化P2P接收端，pickupCode:', currentPickupCode);
+            console.log('🚀 [P2P] 开始初始化P2P接收端，pickupCode:', currentPickupCode);
             const p2p = new P2PFileTransfer(socket);
             window.currentP2P = p2p;
             
+            console.log('⏳ [P2P] P2PFileTransfer实例已创建，开始NAT检测...');
             receiverNATInfo = await p2p.initReceiver(currentPickupCode);
-            console.log('[P2P] NAT检测完成，pickupCode已设置为:', p2p.pickupCode);
+            console.log('✅ [P2P] NAT检测完成，pickupCode已设置为:', p2p.pickupCode);
+            console.log('📊 [P2P] 接收端NAT信息:', receiverNATInfo);
             
             // 发送接收端NAT信息到服务器
             socket.emit('p2p-nat-info', {
@@ -217,7 +223,7 @@ function setupSocketListeners() {
                 role: 'receiver'
             });
             
-            console.log('[P2P] 接收端NAT信息已发送:', receiverNATInfo);
+            console.log('📤 [P2P] 接收端NAT信息已发送到服务器');
             
             // 请求服务器发送发送端的NAT信息（如果已经有的话）
             socket.emit('request-nat-info', { pickupCode: currentPickupCode });
@@ -318,6 +324,8 @@ function setupSocketListeners() {
 function acceptTransfer() {
     if (!expectedFileInfo) return;
     
+    console.log('👆 [接收端] 用户点击接收文件，传输模式:', transferMode);
+    
     // 更新下载文件名显示
     downloadFileName.textContent = expectedFileInfo.name;
     
@@ -326,14 +334,17 @@ function acceptTransfer() {
     
     if (transferMode === 'storage') {
         // 服务器存储模式：直接下载
+        console.log('💾 [存储模式] 开始下载服务器存储的文件');
         downloadStoredFile();
     } else if (transferMode === 'p2p') {
         // P2P模式：通知服务器接收端已准备好
-        console.log('[P2P] P2P模式，通知发送端准备接收');
+        console.log('🔔 [P2P] P2P模式，发送accept-transfer通知服务器');
         socket.emit('accept-transfer', { pickupCode: currentPickupCode });
+        console.log('✅ [P2P] accept-transfer已发送，等待P2P连接建立...');
         // P2P的下载逻辑已经在handleP2PData中处理
     } else {
         // 内存流式传输模式：使用HTTP流
+        console.log('🌊 [内存模式] 开始HTTP流式下载');
         downloadMemoryStream();
     }
 }

@@ -143,19 +143,34 @@ class P2PFileTransfer {
         // 监听ICE候选（Trickle ICE：边收集边发送）
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                console.log('发送ICE候选:', event.candidate.type);
+                const candidate = event.candidate;
+                console.log('🔌 发送ICE候选:', {
+                    类型: candidate.type,
+                    协议: candidate.protocol,
+                    地址: candidate.address,
+                    端口: candidate.port,
+                    优先级: candidate.priority,
+                    完整信息: candidate.candidate
+                });
                 this.socket.emit('p2p-ice-candidate', {
                     pickupCode: this.pickupCode,
                     candidate: event.candidate
                 });
             } else {
-                console.log('ICE候选收集完成');
+                console.log('✅ ICE候选收集完成');
             }
         };
         
         // 监听ICE连接状态
         this.peerConnection.oniceconnectionstatechange = () => {
-            console.log('ICE连接状态:', this.peerConnection.iceConnectionState);
+            const state = this.peerConnection.iceConnectionState;
+            console.log('🔗 ICE连接状态:', state);
+            
+            // 连接成功时，输出详细的端口信息
+            if (state === 'connected' || state === 'completed') {
+                console.log('🎉 P2P连接建立成功！正在获取端口信息...');
+                this.logConnectionDetails();
+            }
         };
         
         // 监听连接状态
@@ -249,12 +264,70 @@ class P2PFileTransfer {
         if (this.peerConnection && this.peerConnection.remoteDescription) {
             try {
                 await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log('ICE候选已添加:', candidate.type);
+                console.log('✅ ICE候选已添加:', {
+                    类型: candidate.type,
+                    协议: candidate.protocol,
+                    地址: candidate.address,
+                    端口: candidate.port
+                });
             } catch (error) {
-                console.error('添加ICE候选失败:', error);
+                console.error('❌ 添加ICE候选失败:', error);
             }
         } else {
-            console.warn('PeerConnection未就绪，无法添加ICE候选');
+            console.warn('⚠️ PeerConnection未就绪，无法添加ICE候选');
+        }
+    }
+    
+    // 获取并输出连接详情（端口信息）
+    async logConnectionDetails() {
+        if (!this.peerConnection) return;
+        
+        try {
+            const stats = await this.peerConnection.getStats();
+            const role = this.isSender ? '发送端' : '接收端';
+            
+            console.log(`\n========== ${role} P2P连接详情 ==========`);
+            
+            stats.forEach(report => {
+                // 成功的候选对
+                if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                    console.log('✅ 成功的连接路径:', {
+                        状态: report.state,
+                        本地候选ID: report.localCandidateId,
+                        远程候选ID: report.remoteCandidateId,
+                        已发送字节: report.bytesSent,
+                        已接收字节: report.bytesReceived,
+                        RTT延迟: report.currentRoundTripTime ? `${(report.currentRoundTripTime * 1000).toFixed(2)}ms` : '未知'
+                    });
+                }
+                
+                // 本地候选（本地端口）
+                if (report.type === 'local-candidate') {
+                    console.log(`📍 ${role}本地候选:`, {
+                        地址: report.address || report.ip,
+                        端口: report.port,
+                        协议: report.protocol,
+                        类型: report.candidateType,
+                        优先级: report.priority
+                    });
+                }
+                
+                // 远程候选（对方端口）
+                if (report.type === 'remote-candidate') {
+                    const peerRole = this.isSender ? '接收端' : '发送端';
+                    console.log(`📍 ${peerRole}远程候选:`, {
+                        地址: report.address || report.ip,
+                        端口: report.port,
+                        协议: report.protocol,
+                        类型: report.candidateType,
+                        优先级: report.priority
+                    });
+                }
+            });
+            
+            console.log('==========================================\n');
+        } catch (error) {
+            console.error('获取连接详情失败:', error);
         }
     }
     

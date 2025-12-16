@@ -302,15 +302,23 @@ io.on('connection', (socket) => {
     const { pickupCode } = data;
     const session = activeSessions.get(pickupCode);
     
+    console.log(`[服务器] 收到accept-transfer事件, pickupCode: ${pickupCode}`);
+    
     if (session && session.receiverId === socket.id) {
         console.log(`[${pickupCode}] 接收方确认接收 (模式: ${session.transferMode})`);
+        console.log(`[${pickupCode}] 会话信息 - 发送端: ${session.senderId}, 接收端: ${session.receiverId}`);
         
         // P2P模式下，通知发送端可以开始P2P传输了
         if (session.transferMode === 'p2p' && session.senderSocket) {
+            console.log(`[${pickupCode}] P2P模式，准备通知发送端...`);
             session.senderSocket.emit('receiver-ready-p2p', { pickupCode });
-            console.log(`[${pickupCode}] 通知发送端：接收端P2P已准备好`);
+            console.log(`[${pickupCode}] ✅ 已发送receiver-ready-p2p给发送端`);
+        } else {
+            console.log(`[${pickupCode}] 非P2P模式或发送端Socket不存在`);
         }
         // 其他模式由HTTP请求触发
+    } else {
+        console.log(`[${pickupCode}] accept-transfer验证失败 - session存在: ${!!session}, receiverId匹配: ${session?.receiverId === socket.id}`);
     }
   });
 
@@ -389,9 +397,13 @@ io.on('connection', (socket) => {
     const { pickupCode, offer } = data;
     const session = activeSessions.get(pickupCode);
     
+    console.log(`[服务器] 收到p2p-offer, pickupCode: ${pickupCode}`);
+    
     if (session && session.senderId === socket.id && session.receiverSocket) {
       session.receiverSocket.emit('p2p-offer', { pickupCode, offer });
-      console.log(`[${pickupCode}] 转发P2P Offer`);
+      console.log(`[${pickupCode}] ✅ P2P Offer已转发给接收端`);
+    } else {
+      console.log(`[${pickupCode}] ❌ Offer转发失败 - session存在: ${!!session}, senderId匹配: ${session?.senderId === socket.id}, receiverSocket存在: ${!!session?.receiverSocket}`);
     }
   });
   
@@ -400,9 +412,13 @@ io.on('connection', (socket) => {
     const { pickupCode, answer } = data;
     const session = activeSessions.get(pickupCode);
     
+    console.log(`[服务器] 收到p2p-answer, pickupCode: ${pickupCode}`);
+    
     if (session && session.receiverId === socket.id && session.senderSocket) {
       session.senderSocket.emit('p2p-answer', { pickupCode, answer });
-      console.log(`[${pickupCode}] 转发P2P Answer`);
+      console.log(`[${pickupCode}] ✅ P2P Answer已转发给发送端`);
+    } else {
+      console.log(`[${pickupCode}] ❌ Answer转发失败`);
     }
   });
   

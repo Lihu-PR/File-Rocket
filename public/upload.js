@@ -615,23 +615,29 @@ function setupSocketListeners() {
     socket.on('receiver-ready-p2p', async (data) => {
         const { pickupCode: readyPickupCode } = data;
         
+        console.log('🔔 [发送端] 收到receiver-ready-p2p事件:', readyPickupCode);
+        
         // 验证是否属于当前房间
         if (readyPickupCode && readyPickupCode !== pickupCode) {
             console.log(`[房间隔离] 忽略不属于当前房间的P2P就绪: ${readyPickupCode} (当前: ${pickupCode})`);
             return;
         }
         
-        console.log(`[${pickupCode}] 接收端P2P已准备好，开始创建Offer...`);
+        console.log(`🚀 [${pickupCode}] 接收端P2P已准备好，开始创建Offer...`);
         statusText.textContent = '接收端已准备，正在建立P2P连接...';
         
         // 现在创建并发送Offer
         if (window.currentP2P) {
             try {
+                console.log('⏳ [P2P] 调用createAndSendOffer()...');
                 await window.currentP2P.createAndSendOffer();
+                console.log('✅ [P2P] Offer创建并发送成功');
             } catch (error) {
-                console.error('[P2P] 创建Offer失败:', error);
+                console.error('❌ [P2P] 创建Offer失败:', error);
                 statusText.textContent = 'P2P连接建立失败';
             }
+        } else {
+            console.error('❌ [P2P] window.currentP2P不存在！');
         }
     });
     
