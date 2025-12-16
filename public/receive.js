@@ -162,8 +162,8 @@ async function connectToSender() {
         
         if (response.success) {
             // 连接成功，等待文件信息
-            transferMode = 'memory';
-            console.log('连接成功，等待文件信息...');
+            // 不要在这里设置transferMode，等待file-info事件来设置
+            console.log('✅ 连接成功，等待文件信息...');
         } else {
             // 连接失败
             showError(response.message || '连接失败');
@@ -201,9 +201,11 @@ function setupSocketListeners() {
         }
         
         expectedFileInfo = { name, size, type };
+        
+        console.log('🔍 [调试] mode值:', mode, '当前transferMode:', transferMode);
         transferMode = mode || transferMode || 'memory';
         
-        console.log('🔄 [接收端] 传输模式设置为:', transferMode);
+        console.log('🔄 [接收端] 传输模式最终设置为:', transferMode);
         
         // 如果是P2P模式，初始化P2P接收
         if (mode === 'p2p') {
