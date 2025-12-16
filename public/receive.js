@@ -325,6 +325,10 @@ function acceptTransfer() {
     if (transferMode === 'storage') {
         // 服务器存储模式：直接下载
         downloadStoredFile();
+    } else if (transferMode === 'p2p') {
+        // P2P模式：等待WebRTC连接，不使用HTTP下载
+        console.log('[P2P] P2P模式下等待WebRTC连接，不使用服务器下载');
+        // P2P的下载逻辑已经在handleP2PData中处理
     } else {
         // 内存流式传输模式：使用HTTP流
         downloadMemoryStream();

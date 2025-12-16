@@ -194,7 +194,9 @@ io.on('connection', (socket) => {
     
     if (session && session.senderId === socket.id) {
       session.fileInfo = fileInfo;
-      console.log(`[${pickupCode}] 存储文件信息: ${fileInfo.name}`);
+      // 记录传输模式
+      session.transferMode = fileInfo.mode || 'memory';
+      console.log(`[${pickupCode}] 存储文件信息: ${fileInfo.name} (模式: ${session.transferMode})`);
       
       // 如果接收方已连接，发送文件信息（附带 pickupCode）
       if (session.receiverSocket) {
@@ -215,6 +217,12 @@ io.on('connection', (socket) => {
     const session = activeSessions.get(pickupCode);
     
     if (session && session.senderId === socket.id) {
+      // P2P模式下不处理文件块（文件通过WebRTC直接传输）
+      if (session.transferMode === 'p2p') {
+        console.log(`[${pickupCode}] P2P模式，忽略file-chunk`);
+        return;
+      }
+      
       // 检查是否有活跃的 HTTP 下载响应流
       if (session.downloadResponse && !session.downloadResponse.writableEnded) {
         

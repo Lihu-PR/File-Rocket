@@ -597,6 +597,12 @@ function setupSocketListeners() {
             return;
         }
         
+        // P2P模式不需要通过服务器传输文件
+        if (transferMode === 'p2p') {
+            console.log('[P2P] P2P模式下不使用服务器中继传输');
+            return;
+        }
+        
         statusText.textContent = '开始传输文件...';
         setTimeout(() => {
             startFileTransfer();
