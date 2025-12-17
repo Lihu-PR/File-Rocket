@@ -433,7 +433,10 @@ async function createP2PSession() {
             
             // P2P模式下，发送端不再自己计算进度，而是接收来自接收端的进度
             // 监听来自接收端的进度更新
+            console.log(`🎧 [发送端] 注册p2p-progress监听器，当前pickupCode: ${pickupCode}`);
             socket.on('p2p-progress', (data) => {
+                console.log(`📥 [发送端] 收到p2p-progress事件:`, data);
+                
                 // 严格验证：只接收属于当前房间的进度
                 if (data.pickupCode !== pickupCode) {
                     console.log(`[房间隔离] 忽略不属于当前房间的P2P进度: ${data.pickupCode} (当前: ${pickupCode})`);
@@ -444,7 +447,7 @@ async function createP2PSession() {
                 updateProgress(data.progress);
                 transferSpeed.textContent = `${formatFileSize(data.speed)}/s`;
                 
-                console.log(`📊 [P2P同步] 进度: ${data.progress.toFixed(1)}%, 速度: ${formatFileSize(data.speed)}/s, 已接收: ${formatFileSize(data.bytesReceived)}`);
+                console.log(`📊 [发送端同步] 进度: ${data.progress.toFixed(1)}%, 速度: ${formatFileSize(data.speed)}/s, 已接收: ${formatFileSize(data.bytesReceived)}`);
             });
             
             // 监听来自接收端的完成通知

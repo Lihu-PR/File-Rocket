@@ -646,14 +646,15 @@ function handleP2PData(data) {
             
             // P2P模式下，每1秒向服务器同步一次进度给发送端
             if (now - p2pLastSyncUpdate >= P2P_SYNC_INTERVAL || p2pTotalReceived >= p2pMetadata.size) {
-                socket.emit('p2p-progress', {
+                const progressData = {
                     pickupCode: currentPickupCode,
                     progress: progress,
                     bytesReceived: p2pTotalReceived,
                     speed: instantSpeed
-                });
+                };
+                socket.emit('p2p-progress', progressData);
                 p2pLastSyncUpdate = now;
-                console.log(`📤 [同步] 进度: ${progress.toFixed(1)}%, 速度: ${formatFileSize(instantSpeed)}/s`);
+                console.log(`📤 [接收端同步] 进度: ${progress.toFixed(1)}%, 速度: ${formatFileSize(instantSpeed)}/s, pickupCode: ${currentPickupCode}`);
             }
         }
     }

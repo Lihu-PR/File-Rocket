@@ -7,6 +7,7 @@ class P2PFileTransfer {
         this.pickupCode = null;
         this.isSender = false;
         this.natType = null;
+        this.pendingIceCandidates = []; // 缓存早到的ICE候选
         
         // STUN/TURN 服务器列表（增加更多服务器提高成功率）
         this.iceServers = [
@@ -273,6 +274,9 @@ class P2PFileTransfer {
         console.log('收到Answer，设置远程描述');
         await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         console.log('Answer已设置，等待ICE连接建立');
+        
+        // 处理缓存的ICE候选
+        await this.processPendingIceCandidates();
     }
     
     // 处理ICE候选
@@ -294,7 +298,20 @@ class P2PFileTransfer {
                 console.error('❌ 添加ICE候选失败:', error);
             }
         } else {
-            console.warn('⚠️ PeerConnection未就绪，无法添加ICE候选');
+            // 远程描述还未设置，缓存ICE候选
+            console.log('📦 远程描述未就绪，缓存ICE候选');
+            this.pendingIceCandidates.push(candidate);
+        }
+    }
+    
+    // 处理缓存的ICE候选
+    async processPendingIceCandidates() {
+        if (this.pendingIceCandidates.length > 0) {
+            console.log(`🔄 处理 ${this.pendingIceCandidates.length} 个缓存的ICE候选`);
+            for (const candidate of this.pendingIceCandidates) {
+                await this.handleIceCandidate(candidate);
+            }
+            this.pendingIceCandidates = [];
         }
     }
     
