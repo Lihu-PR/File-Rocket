@@ -184,9 +184,19 @@ class P2PFileTransfer {
             // 连接失败时的处理
             if (this.peerConnection.connectionState === 'failed' || 
                 this.peerConnection.connectionState === 'disconnected') {
-                console.error('P2P连接失败或断开');
-                if (this.onError) {
-                    this.onError(new Error('P2P连接失败'));
+                
+                // 检查是否是正常关闭（文件传输完成后的关闭）
+                const isNormalClose = this.peerConnection.connectionState === 'disconnected' && 
+                                      this.dataChannel && 
+                                      this.dataChannel.readyState === 'closed';
+                
+                if (!isNormalClose) {
+                    console.error('P2P连接失败或断开');
+                    if (this.onError) {
+                        this.onError(new Error('P2P连接失败'));
+                    }
+                } else {
+                    console.log('P2P连接正常关闭');
                 }
             }
         };
@@ -224,6 +234,12 @@ class P2PFileTransfer {
         };
         
         this.dataChannel.onerror = (error) => {
+            // 忽略"User-Initiated Abort"错误（正常关闭）
+            if (error.error && error.error.reason === 'Close called') {
+                console.log('P2P数据通道正常关闭');
+                return;
+            }
+            
             console.error('P2P数据通道错误:', error);
             
             if (this.onError) {
@@ -264,12 +280,16 @@ class P2PFileTransfer {
         if (this.peerConnection && this.peerConnection.remoteDescription) {
             try {
                 await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log('✅ ICE候选已添加:', {
-                    类型: candidate.type,
-                    协议: candidate.protocol,
-                    地址: candidate.address,
-                    端口: candidate.port
-                });
+                
+                // 只在有有效信息时才输出详细日志
+                if (candidate && (candidate.type || candidate.port)) {
+                    console.log('✅ ICE候选已添加:', {
+                        类型: candidate.type || '未知',
+                        协议: candidate.protocol || '未知',
+                        地址: candidate.address || candidate.ip || '未知',
+                        端口: candidate.port || '未知'
+                    });
+                }
             } catch (error) {
                 console.error('❌ 添加ICE候选失败:', error);
             }
@@ -357,7 +377,9 @@ class P2PFileTransfer {
         // 发送文件数据
         let offset = 0;
         let lastProgressUpdate = Date.now();
+        let lastBufferWarning = 0; // 缓冲区警告计时器
         const progressUpdateInterval = 100; // 每100ms更新一次进度
+        const bufferWarningInterval = 2000; // 每2秒最多输出一次缓冲区警告
         const reader = new FileReader();
         
         const readSlice = () => {
@@ -372,11 +394,18 @@ class P2PFileTransfer {
                 const maxBuffered = 8 * 1024 * 1024; // 降低到8MB缓冲上限
                 
                 if (bufferedAmount > maxBuffered) {
-                    // 如果缓冲区太满，等待更长时间
-                    console.log(`⚠️ 缓冲区使用: ${(bufferedAmount / 1024 / 1024).toFixed(2)}MB，等待清空...`);
+                    // 限制警告频率，避免日志刷屏
+                    const now = Date.now();
+                    if (now - lastBufferWarning >= bufferWarningInterval) {
+                        console.log(`⚠️ 缓冲区使用: ${(bufferedAmount / 1024 / 1024).toFixed(2)}MB，等待清空...`);
+                        lastBufferWarning = now;
+                    }
                     setTimeout(() => reader.onload(e), 100); // 增加到100ms
                     return;
                 }
+                
+                // 重置警告计时器（缓冲区正常时）
+                lastBufferWarning = 0;
                 
                 try {
                     this.dataChannel.send(e.target.result);

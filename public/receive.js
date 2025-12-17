@@ -153,7 +153,11 @@ async function connectToSender() {
             }
         }
     } catch (error) {
-        console.log('不是服务器存储模式，尝试实时传输模式');
+        // 404是正常的（P2P或内存模式下文件不在服务器），静默处理
+        // 只在非404错误时输出日志
+        if (!error.message || !error.message.includes('404')) {
+            console.log('检查存储文件时出错:', error);
+        }
     }
     
     // 尝试加入Socket会话（内存流式或P2P）
@@ -612,7 +616,7 @@ function handleP2PData(data) {
         // 对于大文件，定期触发下载以释放内存
         if (p2pMetadata && p2pMetadata.size > 100 * 1024 * 1024) { // >100MB
             // 每接收50MB就触发一次部分下载（流式）
-            if (p2pReceivedData.length > 0 && p2pTotalReceived % (50 * 1024 * 1024) < chunk.length) {
+            if (p2pReceivedData.length > 0 && p2pTotalReceived % (50 * 1024 * 1024) < data.byteLength) {
                 console.log(`💾 已接收 ${formatFileSize(p2pTotalReceived)}，缓存块数: ${p2pReceivedData.length}`);
             }
         }
