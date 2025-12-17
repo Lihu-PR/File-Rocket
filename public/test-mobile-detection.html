@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动设备检测测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .result {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .mobile {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+        }
+        .desktop {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+        .info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .info-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .value {
+            color: #1f2937;
+            font-family: monospace;
+        }
+        .icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 移动设备检测测试</h1>
+        
+        <div id="result" class="result">
+            <div class="icon" id="icon"></div>
+            <div id="resultText"></div>
+        </div>
+        
+        <div class="info">
+            <h3 style="margin-top: 0;">检测详情</h3>
+            <div class="info-item">
+                <span class="label">User Agent:</span>
+                <span class="value" id="userAgent"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">屏幕宽度:</span>
+                <span class="value" id="screenWidth"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">屏幕高度:</span>
+                <span class="value" id="screenHeight"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">触摸屏支持:</span>
+                <span class="value" id="touchSupport"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">最大触摸点:</span>
+                <span class="value" id="maxTouchPoints"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">平台:</span>
+                <span class="value" id="platform"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">UserAgentData (新API):</span>
+                <span class="value" id="userAgentData"></span>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3 style="margin-top: 0;">P2P传输模式</h3>
+            <div id="transferMode" style="padding: 15px; border-radius: 8px; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 复制 receive.js 中的移动设备检测函数
+        function isMobileDevice() {
+            // 方法1：通过 userAgent 检测
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // 检测常见移动设备标识
+            const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+            if (mobileRegex.test(userAgent)) {
+                return true;
+            }
+            
+            // 方法2：通过触摸屏检测（辅助判断）
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            // 方法3：通过屏幕宽度检测（辅助判断）
+            const isSmallScreen = window.innerWidth <= 768;
+            
+            // 综合判断：触摸屏 + 小屏幕 = 移动设备
+            if (hasTouch && isSmallScreen) {
+                return true;
+            }
+            
+            // 方法4：检测平台信息（新API）
+            if (navigator.userAgentData && navigator.userAgentData.mobile) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 执行检测
+        const isMobile = isMobileDevice();
+        
+        // 显示结果
+        const resultDiv = document.getElementById('result');
+        const iconDiv = document.getElementById('icon');
+        const resultText = document.getElementById('resultText');
+        
+        if (isMobile) {
+            resultDiv.classList.add('mobile');
+            iconDiv.textContent = '📱';
+            resultText.textContent = '检测结果：移动设备';
+        } else {
+            resultDiv.classList.add('desktop');
+            iconDiv.textContent = '💻';
+            resultText.textContent = '检测结果：桌面设备';
+        }
+        
+        // 显示详细信息
+        document.getElementById('userAgent').textContent = navigator.userAgent.substring(0, 50) + '...';
+        document.getElementById('screenWidth').textContent = window.innerWidth + 'px';
+        document.getElementById('screenHeight').textContent = window.innerHeight + 'px';
+        document.getElementById('touchSupport').textContent = ('ontouchstart' in window) ? '✅ 是' : '❌ 否';
+        document.getElementById('maxTouchPoints').textContent = navigator.maxTouchPoints || '0';
+        document.getElementById('platform').textContent = navigator.platform || '未知';
+        
+        // UserAgentData (新API)
+        if (navigator.userAgentData) {
+            document.getElementById('userAgentData').textContent = 
+                `mobile: ${navigator.userAgentData.mobile ? '✅' : '❌'}`;
+        } else {
+            document.getElementById('userAgentData').textContent = '不支持';
+        }
+        
+        // 显示传输模式
+        const transferModeDiv = document.getElementById('transferMode');
+        if (isMobile) {
+            transferModeDiv.style.background = 'rgba(255, 193, 7, 0.15)';
+            transferModeDiv.style.border = '2px solid rgba(255, 193, 7, 0.5)';
+            transferModeDiv.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 10px;">
+                    <span style="font-size: 1.5rem;">📱</span>
+                    <div>
+                        <strong style="color: #f59e0b; font-size: 16px;">移动设备模式</strong><br>
+                        <span style="font-size: 14px; color: #92400e; margin-top: 5px; display: block;">
+                            • P2P传输将使用<strong>缓存模式</strong><br>
+                            • 文件先接收到内存，传输完成后统一下载<br>
+                            • 下载时需要您手动确认（浏览器限制）<br>
+                            • 建议传输文件大小 < 500MB
+                        </span>
+                    </div>
+                </div>
+            `;
+        } else {
+            transferModeDiv.style.background = 'rgba(16, 185, 129, 0.15)';
+            transferModeDiv.style.border = '2px solid rgba(16, 185, 129, 0.5)';
+            transferModeDiv.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 10px;">
+                    <span style="font-size: 1.5rem;">💻</span>
+                    <div>
+                        <strong style="color: #10b981; font-size: 16px;">桌面设备模式</strong><br>
+                        <span style="font-size: 14px; color: #065f46; margin-top: 5px; display: block;">
+                            • P2P传输将使用<strong>StreamSaver流式模式</strong><br>
+                            • 文件边接收边保存到磁盘<br>
+                            • 内存占用极低（~10MB）<br>
+                            • 支持超大文件传输（>10GB）
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+

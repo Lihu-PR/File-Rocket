@@ -461,6 +461,23 @@ io.on('connection', (socket) => {
     }
   });
   
+  // 接收端准备好接收数据（接收端 → 服务器 → 发送端）
+  socket.on('receiver-ready-for-data', (data) => {
+    const { pickupCode, streamingMode } = data;
+    const session = activeSessions.get(pickupCode);
+    
+    // 验证：只有接收端可以发送准备好信号
+    if (session && session.receiverId === socket.id && session.senderSocket) {
+      console.log(`[${pickupCode}] 接收端已准备好接收数据 (流式模式: ${streamingMode})`);
+      
+      // 转发给发送端（通过服务器，作为 DataChannel 的备份）
+      session.senderSocket.emit('receiver-ready-for-data', {
+        pickupCode,
+        streamingMode
+      });
+    }
+  });
+  
   // P2P传输完成通知（接收端 → 服务器 → 发送端）
   socket.on('p2p-complete', (data) => {
     const { pickupCode, totalBytes } = data;

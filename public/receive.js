@@ -216,7 +216,7 @@ function setupSocketListeners() {
         // 如果是P2P模式，初始化P2P接收
         if (mode === 'p2p') {
             console.log('🚀 [P2P] 开始初始化P2P接收端，pickupCode:', currentPickupCode);
-            const p2p = new P2PFileTransfer(socket);
+            p2p = new P2PFileTransfer(socket);
             window.currentP2P = p2p;
             
             console.log('⏳ [P2P] P2PFileTransfer实例已创建，开始NAT检测...');
@@ -240,6 +240,9 @@ function setupSocketListeners() {
             setTimeout(() => {
                 console.log('[P2P] 当前NAT信息 - 发送端:', senderNATInfo, '接收端:', receiverNATInfo);
                 updateP2PNATDisplay(senderNATInfo, receiverNATInfo);
+                
+                // 显示传输模式提示（移动设备 vs 桌面设备）
+                displayP2PTransferModeHint();
             }, 500); // 增加延迟，等待服务器响应
             
             // 设置P2P事件处理
@@ -570,6 +573,39 @@ let p2pLastReceivedBytes = 0; // 上次更新时的接收字节数
 const P2P_PROGRESS_UPDATE_INTERVAL = 100; // UI进度更新间隔(ms)
 const P2P_SYNC_INTERVAL = 1000; // 同步给发送端的间隔(ms)
 
+// 流式写入相关
+let p2pWritableStream = null; // 文件写入流
+let p2pStreamWriter = null; // StreamSaver writer
+let p2pStreamingMode = false; // 是否使用流式模式
+let p2pReadyToReceive = false; // 是否准备好接收数据
+let p2p = null; // P2P传输实例（全局）
+
+// 检测是否为移动设备
+function isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // 检测移动设备的用户代理
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+    const isMobile = mobileRegex.test(userAgent);
+    
+    // 额外检测：触摸屏 + 小屏幕
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    const result = isMobile || (isTouchDevice && isSmallScreen);
+    
+    console.log('📱 设备检测:', {
+        userAgent: userAgent.substring(0, 50) + '...',
+        isMobile: isMobile,
+        isTouchDevice: isTouchDevice,
+        isSmallScreen: isSmallScreen,
+        screenWidth: window.innerWidth,
+        最终判定: result ? '移动设备' : '桌面设备'
+    });
+    
+    return result;
+}
+
 function handleP2PData(data) {
     // 尝试解析为JSON（元数据或控制消息）
     if (typeof data === 'string') {
@@ -586,6 +622,16 @@ function handleP2PData(data) {
                 p2pLastProgressUpdate = Date.now();
                 p2pLastSyncUpdate = Date.now();
                 p2pLastReceivedBytes = 0;
+                p2pReadyToReceive = false; // 等待用户确认
+                
+                // 尝试初始化流式写入
+                initP2PStreamDownload();
+                
+                return;
+            } else if (message.type === 'start-transfer') {
+                // 发送端确认可以开始传输了
+                console.log('📡 发送端已准备好，开始接收数据');
+                p2pReadyToReceive = true;
                 
                 // 切换到下载阶段
                 showStage('download-stage');
@@ -608,10 +654,45 @@ function handleP2PData(data) {
     
     // 接收文件数据块
     if (data instanceof ArrayBuffer) {
-        // 直接保存 ArrayBuffer，不转换为 Uint8Array
-        // 这样在创建 Blob 时更高效且避免数据损坏
-        p2pReceivedData.push(data);
-        p2pTotalReceived += data.byteLength;
+        // 检查是否准备好接收
+        if (!p2pReadyToReceive) {
+            console.warn('⚠️ 尚未准备好接收数据，忽略数据块');
+            return;
+        }
+        
+        // 流式写入模式
+        if (p2pStreamingMode && p2pStreamWriter) {
+            try {
+                // 使用StreamSaver的writer直接写入
+                const uint8Array = new Uint8Array(data);
+                p2pStreamWriter.write(uint8Array);
+                p2pTotalReceived += data.byteLength;
+            } catch (error) {
+                console.error('❌ StreamSaver写入失败，降级到缓存模式:', error);
+                // 降级到缓存模式
+                p2pStreamingMode = false;
+                
+                // 尝试关闭StreamSaver writer
+                try {
+                    if (p2pStreamWriter) {
+                        p2pStreamWriter.abort();
+                        p2pStreamWriter = null;
+                    }
+                } catch (abortError) {
+                    console.warn('⚠️ 关闭StreamSaver writer失败:', abortError);
+                }
+                
+                // 将当前数据块保存到缓存
+                p2pReceivedData.push(data);
+                p2pTotalReceived += data.byteLength;
+                
+                console.log('⚠️ 已切换到内存缓存模式，后续数据将缓存在内存中');
+            }
+        } else {
+            // 缓存模式（降级方案）
+            p2pReceivedData.push(data);
+            p2pTotalReceived += data.byteLength;
+        }
         
         // 对于大文件，定期触发下载以释放内存
         if (p2pMetadata && p2pMetadata.size > 100 * 1024 * 1024) { // >100MB
@@ -660,13 +741,114 @@ function handleP2PData(data) {
     }
 }
 
-// 完成P2P下载
-function completeP2PDownload() {
-    if (!p2pMetadata || p2pReceivedData.length === 0) {
-        showError('P2P接收失败：数据不完整');
+// 检测是否为移动设备
+function isMobileDevice() {
+    // 方法1：通过 userAgent 检测
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // 检测常见移动设备标识
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+    if (mobileRegex.test(userAgent)) {
+        return true;
+    }
+    
+    // 方法2：通过触摸屏检测（辅助判断）
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // 方法3：通过屏幕宽度检测（辅助判断）
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    // 综合判断：触摸屏 + 小屏幕 = 移动设备
+    if (hasTouch && isSmallScreen) {
+        return true;
+    }
+    
+    // 方法4：检测平台信息（新API）
+    if (navigator.userAgentData && navigator.userAgentData.mobile) {
+        return true;
+    }
+    
+    return false;
+}
+
+// 初始化P2P流式下载
+async function initP2PStreamDownload() {
+    if (!p2pMetadata) return;
+    
+    console.log('🔧 尝试使用StreamSaver.js初始化流式下载...');
+    console.log('🔍 检查StreamSaver支持:', typeof streamSaver !== 'undefined');
+    
+    // 检测是否为移动设备
+    const isMobile = isMobileDevice();
+    
+    // 移动设备强制使用缓存模式（因为需要用户确认下载）
+    if (isMobile) {
+        console.log('📱 检测到移动设备，使用缓存模式（传输完成后统一下载）');
+        p2pStreamingMode = false;
+        p2pStreamWriter = null;
+        
+        // 通知发送端可以开始传输了
+        notifyReadyToReceive();
         return;
     }
     
+    // 桌面设备：检查StreamSaver是否可用
+    if (typeof streamSaver !== 'undefined') {
+        try {
+            // 配置StreamSaver (可选)
+            // streamSaver.mitm = '/path/to/mitm.html'; // 如果需要自定义Service Worker路径
+            
+            // 创建流式写入流
+            const fileStream = streamSaver.createWriteStream(p2pMetadata.name, {
+                size: p2pMetadata.size // 提供文件大小可以显示更准确的进度
+            });
+            
+            p2pStreamWriter = fileStream.getWriter();
+            p2pStreamingMode = true;
+            
+            console.log('✅ StreamSaver流式下载已初始化，文件将边收边存');
+            console.log(`📦 文件: ${p2pMetadata.name}, 大小: ${formatFileSize(p2pMetadata.size)}`);
+            
+            // 通知发送端可以开始传输了
+            notifyReadyToReceive();
+            
+        } catch (error) {
+            console.warn('⚠️ StreamSaver初始化失败，降级到缓存模式:', error);
+            // 降级到缓存模式
+            p2pStreamingMode = false;
+            p2pStreamWriter = null;
+            
+            // 通知发送端可以开始传输了
+            notifyReadyToReceive();
+        }
+    } else {
+        // StreamSaver不可用，使用缓存模式
+        console.log('ℹ️ StreamSaver不可用，使用缓存模式');
+        p2pStreamingMode = false;
+        
+        // 通知发送端可以开始传输了
+        notifyReadyToReceive();
+    }
+}
+
+// 通知发送端准备好接收
+function notifyReadyToReceive() {
+    console.log('📤 通知发送端：接收端已准备好');
+    
+    // 通过 P2P DataChannel 发送准备好的信号
+    if (p2p && p2p.dataChannel && p2p.dataChannel.readyState === 'open') {
+        p2p.dataChannel.send(JSON.stringify({ type: 'receiver-ready' }));
+    }
+    
+    // 同时通过服务器发送（双保险）
+    socket.emit('receiver-ready-for-data', {
+        pickupCode: currentPickupCode,
+        streamingMode: p2pStreamingMode
+    });
+}
+
+// 完成P2P下载
+async function completeP2PDownload() {
     // 验证接收的数据大小是否匹配
     if (p2pTotalReceived !== p2pMetadata.size) {
         console.warn(`⚠️ 数据大小不匹配！期望: ${p2pMetadata.size}, 实际: ${p2pTotalReceived}`);
@@ -675,35 +857,87 @@ function completeP2PDownload() {
     // 确保进度显示为100%
     updateDownloadProgress(100);
     
-    console.log(`📦 开始创建Blob，共 ${p2pReceivedData.length} 个数据块，总大小: ${formatFileSize(p2pTotalReceived)}`);
+    let finalSize = p2pTotalReceived;
     
-    // 直接使用 ArrayBuffer 数组创建 Blob
-    const blob = new Blob(p2pReceivedData, { 
-        type: p2pMetadata.mimeType || 'application/octet-stream' 
-    });
-    
-    console.log(`✅ Blob创建成功，大小: ${formatFileSize(blob.size)} (期望: ${formatFileSize(p2pMetadata.size)})`);
-    
-    // 最终验证
-    if (blob.size !== p2pMetadata.size) {
-        console.error(`❌ 文件大小验证失败！Blob: ${blob.size}, 期望: ${p2pMetadata.size}`);
-        showError(`文件接收不完整：${formatFileSize(blob.size)} / ${formatFileSize(p2pMetadata.size)}`);
-        return;
+    // 流式模式：关闭写入流
+    if (p2pStreamingMode && p2pStreamWriter) {
+        try {
+            await p2pStreamWriter.close();
+            console.log(`✅ StreamSaver流式下载完成，文件已保存，大小: ${formatFileSize(p2pTotalReceived)}`);
+            finalSize = p2pTotalReceived;
+        } catch (error) {
+            console.error('❌ 关闭StreamSaver写入流失败:', error);
+            showError('文件保存失败');
+            return;
+        }
+    } 
+    // 缓存模式：创建 Blob 并下载
+    else {
+        if (!p2pMetadata || p2pReceivedData.length === 0) {
+            showError('P2P接收失败：数据不完整');
+            return;
+        }
+        
+        console.log(`📦 开始创建Blob，共 ${p2pReceivedData.length} 个数据块，总大小: ${formatFileSize(p2pTotalReceived)}`);
+        
+        // 检测是否为移动设备
+        const isMobile = isMobileDevice();
+        
+        // 直接使用 ArrayBuffer 数组创建 Blob
+        const blob = new Blob(p2pReceivedData, { 
+            type: p2pMetadata.mimeType || 'application/octet-stream' 
+        });
+        
+        console.log(`✅ Blob创建成功，大小: ${formatFileSize(blob.size)} (期望: ${formatFileSize(p2pMetadata.size)})`);
+        
+        // 最终验证
+        if (blob.size !== p2pMetadata.size) {
+            console.error(`❌ 文件大小验证失败！Blob: ${blob.size}, 期望: ${p2pMetadata.size}`);
+            showError(`文件接收不完整：${formatFileSize(blob.size)} / ${formatFileSize(p2pMetadata.size)}`);
+            return;
+        }
+        
+        // 触发下载
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = p2pMetadata.name;
+        
+        // 移动设备优化：添加额外的提示和处理
+        if (isMobile) {
+            console.log('📱 移动设备：准备触发下载（需要用户确认）');
+            
+            // 移动设备上，先显示一个提示，让用户知道即将下载
+            // 某些移动浏览器需要用户交互才能触发下载
+            document.body.appendChild(a);
+            
+            // 使用 setTimeout 确保 DOM 更新完成
+            setTimeout(() => {
+                a.click();
+                
+                // 延迟清理，确保下载已触发
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    console.log('📱 移动设备：下载已触发，资源已清理');
+                }, 1000);
+            }, 100);
+        } else {
+            // 桌面设备：直接触发下载
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log('💻 桌面设备：下载已触发');
+        }
+        
+        finalSize = blob.size;
     }
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = p2pMetadata.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
     
     // 通知服务器和发送端：接收完成
     socket.emit('p2p-complete', {
         pickupCode: currentPickupCode,
-        totalBytes: blob.size
+        totalBytes: finalSize
     });
     
     console.log('📤 已通知发送端：文件接收完成');
@@ -718,6 +952,10 @@ function completeP2PDownload() {
     p2pLastProgressUpdate = 0;
     p2pLastSyncUpdate = 0;
     p2pLastReceivedBytes = 0;
+    p2pWritableStream = null;
+    p2pStreamWriter = null;
+    p2pStreamingMode = false;
+    p2pReadyToReceive = false;
     isDownloading = false;
     
     // 通知服务器
@@ -727,6 +965,78 @@ function completeP2PDownload() {
     if (window.currentP2P) {
         window.currentP2P.close();
         window.currentP2P = null;
+    }
+}
+
+// 显示P2P传输模式提示
+function displayP2PTransferModeHint() {
+    const confirmStage = document.getElementById('file-confirm-stage');
+    let modeHint = confirmStage.querySelector('.p2p-mode-hint');
+    
+    // 如果已存在，先移除
+    if (modeHint) {
+        modeHint.remove();
+    }
+    
+    // 检测设备类型
+    const isMobile = isMobileDevice();
+    
+    // 创建提示元素
+    modeHint = document.createElement('div');
+    modeHint.className = 'p2p-mode-hint';
+    modeHint.style.cssText = `
+        margin-top: 15px;
+        margin-bottom: 25px;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    `;
+    
+    if (isMobile) {
+        // 移动设备提示
+        modeHint.style.background = 'rgba(255, 193, 7, 0.15)';
+        modeHint.style.border = '1px solid rgba(255, 193, 7, 0.3)';
+        modeHint.style.color = 'var(--text-main)';
+        modeHint.innerHTML = `
+            <div style="text-align: center;">
+                <div style="margin-bottom: 8px;">
+                    <span style="font-size: 1.2rem;">📱</span>
+                    <strong style="color: #f59e0b; margin-left: 5px;">移动设备模式</strong>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-sub);">
+                    文件将先接收到内存，传输完成后统一下载（需要您确认下载）
+                </div>
+            </div>
+        `;
+    } else {
+        // 桌面设备提示
+        modeHint.style.background = 'rgba(16, 185, 129, 0.15)';
+        modeHint.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+        modeHint.style.color = 'var(--text-main)';
+        modeHint.innerHTML = `
+            <div style="text-align: center;">
+                <div style="margin-bottom: 8px;">
+                    <span style="font-size: 1.2rem;">💻</span>
+                    <strong style="color: #10b981; margin-left: 5px;">桌面设备模式</strong>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-sub);">
+                    文件将边接收边保存到磁盘，内存占用极低
+                </div>
+            </div>
+        `;
+    }
+    
+    // 插入到NAT信息之后
+    const natDisplay = confirmStage.querySelector('.nat-detection');
+    if (natDisplay) {
+        natDisplay.after(modeHint);
+    } else {
+        // 如果没有NAT显示，插入到文件详情之后
+        const fileDetails = confirmStage.querySelector('.file-details');
+        if (fileDetails) {
+            fileDetails.after(modeHint);
+        }
     }
 }
 
@@ -763,7 +1073,6 @@ function updateP2PNATDisplay(senderNAT, receiverNAT) {
                 <div style="font-weight: 600; margin-bottom: 8px; color: var(--primary-color);">📤 发送端</div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">
                     ${senderNAT ? `
-                        <strong>NAT类型：</strong><br>
                         <span class="nat-type" style="font-size: 0.85rem;">${senderNAT.type} - ${senderNAT.name}</span>
                     ` : `
                         <span style="color: var(--text-sub);">等待发送端信息...</span>
@@ -774,7 +1083,6 @@ function updateP2PNATDisplay(senderNAT, receiverNAT) {
             <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;">
                 <div style="font-weight: 600; margin-bottom: 8px; color: var(--secondary-color);">📥 接收端</div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">
-                    <strong>NAT类型：</strong><br>
                     <span class="nat-type" style="font-size: 0.85rem;">${receiverNAT.type} - ${receiverNAT.name}</span>
                 </div>
             </div>

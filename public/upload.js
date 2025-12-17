@@ -527,7 +527,6 @@ function displayNATInfo(senderNAT, role, receiverNAT) {
             <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;">
                 <div style="font-weight: 600; margin-bottom: 8px; color: var(--primary-color);">📤 发送端</div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">
-                    <strong>NAT类型：</strong><br>
                     <span class="nat-type" style="font-size: 0.85rem;">${senderNAT.type} - ${senderNAT.name}</span>
                 </div>
             </div>
@@ -536,7 +535,6 @@ function displayNATInfo(senderNAT, role, receiverNAT) {
                 <div style="font-weight: 600; margin-bottom: 8px; color: var(--secondary-color);">📥 接收端</div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">
                     ${receiverNAT ? `
-                        <strong>NAT类型：</strong><br>
                         <span class="nat-type" style="font-size: 0.85rem;">${receiverNAT.type} - ${receiverNAT.name}</span>
                     ` : `
                         <span style="color: var(--text-sub);">等待连接中...</span>

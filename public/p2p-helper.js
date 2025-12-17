@@ -221,13 +221,29 @@ class P2PFileTransfer {
                 this.onChannelOpen();
             }
             
-            // 发送方开始发送文件
+            // 发送方先发送元数据，等待接收方准备好
             if (this.isSender && this.file) {
-                this.sendFile();
+                this.sendMetadata();
             }
         };
         
         this.dataChannel.onmessage = (event) => {
+            // 处理控制消息
+            if (typeof event.data === 'string') {
+                try {
+                    const message = JSON.parse(event.data);
+                    
+                    // 发送方收到接收方准备好的信号
+                    if (this.isSender && message.type === 'receiver-ready') {
+                        console.log('✅ 接收端已准备好，开始发送文件数据');
+                        this.sendFile();
+                        return;
+                    }
+                } catch (e) {
+                    // 不是JSON，继续正常处理
+                }
+            }
+            
             // 接收方处理接收到的数据
             if (!this.isSender && this.onDataReceived) {
                 this.onDataReceived(event.data);
@@ -368,9 +384,29 @@ class P2PFileTransfer {
         }
     }
     
-    // 发送文件
+    // 发送元数据（不发送文件数据）
+    sendMetadata() {
+        if (!this.file || !this.dataChannel) return;
+        
+        console.log('📤 发送文件元数据，等待接收端确认...');
+        
+        const metadata = JSON.stringify({
+            type: 'metadata',
+            name: this.file.name,
+            size: this.file.size,
+            mimeType: this.file.type
+        });
+        this.dataChannel.send(metadata);
+    }
+    
+    // 发送文件数据（在接收端准备好后调用）
     async sendFile() {
         if (!this.file || !this.dataChannel) return;
+        
+        console.log('🚀 开始发送文件数据...');
+        
+        // 发送开始传输信号
+        this.dataChannel.send(JSON.stringify({ type: 'start-transfer' }));
         
         // 动态chunk大小：根据文件大小调整
         let chunkSize = 16384; // 默认16KB for WebRTC
@@ -381,15 +417,6 @@ class P2PFileTransfer {
         }
         const fileSize = this.file.size;
         const totalChunks = Math.ceil(fileSize / chunkSize);
-        
-        // 先发送文件元信息
-        const metadata = JSON.stringify({
-            type: 'metadata',
-            name: this.file.name,
-            size: this.file.size,
-            mimeType: this.file.type
-        });
-        this.dataChannel.send(metadata);
         
         // 发送文件数据
         let offset = 0;
