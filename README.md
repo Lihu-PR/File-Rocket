@@ -12,7 +12,7 @@
 
 ### 🌐 在线体验
 **[https://file-rocket.top/](https://file-rocket.top/)** - 立即体验，无需安装（仅作演示 推荐个人部署）  
-**[https://file-rocket.tech/](https://file-rocket.tech/)** - 备用地址，速度更快（仅作演示 推荐个人部署）
+**[https://file-rocket.tech/](https://file-rocket.tech/)** - 备用地址，速度更快（仅作演示 推荐个人部署）（在备案，暂时维护）
 
 <img width="2560" height="1351" alt="FR4 0" src="https://github.com/user-attachments/assets/00fb127d-73a7-43b1-a891-0443c5b8fb68" />
 
