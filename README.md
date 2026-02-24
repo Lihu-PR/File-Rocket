@@ -63,8 +63,9 @@
 
 <img width="394" height="1354" alt="ScreenShot_2026-02-24_154455_616" src="https://github.com/user-attachments/assets/3da22b6f-77fa-4ec0-9ff6-7d5cce266d2e" />
 
-=======
-### 🎨 双主题系统
+### 🎨 双主题系统  
+
+<img width="750" height="383" alt="ScreenShot_2026-02-24_154607_134" src="https://github.com/user-attachments/assets/a3851891-b3b2-4c98-86d3-33ac7e639517" />
 
 | 特性 | 经典主题 | 极简主题（默认） |
 |------|---------|----------------|
