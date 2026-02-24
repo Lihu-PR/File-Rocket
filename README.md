@@ -17,7 +17,6 @@
 
 <img width="2552" height="1354" alt="ScreenShot_2026-02-24_154217_456" src="https://github.com/user-attachments/assets/266c6a1f-5708-40e7-ba29-fd8986108d64" />
 
-
 *© 2025 File-Rocket 5.0 • Designed for Speed*
 
 </div>
@@ -49,8 +48,7 @@
   - 💻 **桌面设备**：StreamSaver 流式传输，边收边存，支持超大文件（>10GB）
   - 📱 **移动设备**：浏览器缓存模式，传输完成后统一下载（限制 150MB）
 
-<img width="2560" height="1351" alt="UP" src="https://github.com/user-attachments/assets/5c6a5fbc-1ddb-452e-9768-3839af337a69" />
-
+<img width="2552" height="1354" alt="ScreenShot_2026-02-24_154311_560" src="https://github.com/user-attachments/assets/52c9089e-d814-4d7c-84a3-6e4c63c5e502" />
 
 ### 🔐 强大的管理员系统
 
