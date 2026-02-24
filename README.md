@@ -126,7 +126,6 @@ docker run -d --name file-rocket --restart unless-stopped \
   -p 3000:3000 \
   -v /root/file-rocket-data:/app/files \
   lihupr/file-rocket:latest
->>>>>>> da5e1f8 (File-Rocket 5.0: Go 语言重写)
 ```
 视频教程：[AMD64 平台部署视频教程](https://b23.tv/nlUlzcT)
 
