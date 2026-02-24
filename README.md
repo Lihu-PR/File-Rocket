@@ -60,7 +60,6 @@
 - **主题切换**：经典（渐变毛玻璃）/ 极简（扁平简洁）全局切换
 - **安全设置**：修改管理员密码、Token 会话管理
 
-<<<<<<< HEAD
 <img width="737" height="1316" alt="dashboard" src="https://github.com/user-attachments/assets/29cd3ef2-4e85-429e-8e50-a696ccb56fbe" />
 
 =======
@@ -73,7 +72,6 @@
 | **加载动画** | 脉冲动画 | 3D 旋转方块 |
 | **配色** | 紫蓝渐变 | 深灰单色 |
 | **适合场景** | 展示演示 | 日常使用 |
->>>>>>> da5e1f8 (File-Rocket 5.0: Go 语言重写)
 
 ### 🌐 全平台支持
 
