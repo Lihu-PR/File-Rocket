@@ -61,7 +61,7 @@
 - **主题切换**：经典（渐变毛玻璃）/ 极简（扁平简洁）全局切换
 - **安全设置**：修改管理员密码、Token 会话管理
 
-<img width="737" height="1316" alt="dashboard" src="https://github.com/user-attachments/assets/29cd3ef2-4e85-429e-8e50-a696ccb56fbe" />
+<img width="394" height="1354" alt="ScreenShot_2026-02-24_154455_616" src="https://github.com/user-attachments/assets/3da22b6f-77fa-4ec0-9ff6-7d5cce266d2e" />
 
 =======
 ### 🎨 双主题系统
