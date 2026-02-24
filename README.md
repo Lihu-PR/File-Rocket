@@ -14,7 +14,8 @@
 ### 🌐 在线体验
 **[https://file-rocket.top/](https://file-rocket.top/)** - 立即体验，无需安装（仅作演示 推荐个人部署）  
 
-**[https://file-rocket.tech/](https://file-rocket.tech/)** - 备用地址，速度更快（仅作演示 推荐个人部署）
+**[https://file-rocket.tech/](https://file-rocket.tech/)** - 备用地址，速度更快（仅作演示 推荐个人部署）  
+
 
 <img width="2552" height="1354" alt="ScreenShot_2026-02-24_154217_456" src="https://github.com/user-attachments/assets/266c6a1f-5708-40e7-ba29-fd8986108d64" />
 
