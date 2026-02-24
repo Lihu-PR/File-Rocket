@@ -120,15 +120,6 @@ docker run -d --name file-rocket --restart unless-stopped \
 ```
 视频教程：[ARM64 平台部署视频教程](https://b23.tv/mgSF3vi)
 
-#### 💻 AMD64 设备（Windows / Linux PC / 云服务器）
-```bash
-docker run -d --name file-rocket --restart unless-stopped \
-  -p 3000:3000 \
-  -v /root/file-rocket-data:/app/files \
-  lihupr/file-rocket:latest
-```
-视频教程：[AMD64 平台部署视频教程](https://b23.tv/nlUlzcT)
-
 > **访问地址**：打开浏览器访问 `http://设备IP:3000`
 
 #### 🖥️ Windows 本地运行（无需 Docker）
