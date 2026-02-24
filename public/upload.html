@@ -6,13 +6,70 @@
     <title>发送文件 - File-Rocket</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" id="favicon" href="favicon-classic.svg">
+    <!-- 主题初始化（防止闪烁） -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('file-rocket-theme') || 'minimal';
+            if (theme !== 'classic') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            var fav = document.getElementById('favicon');
+            if (fav) fav.href = theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+        })();
+    </script>
 </head>
 <body>
+    <!-- SVG 图标定义 -->
+    <svg style="display:none">
+        <symbol id="icon-logo" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z"/>
+            <path d="M4 8L16 14L28 8"/>
+            <path d="M16 14V22"/>
+        </symbol>
+        <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </symbol>
+        <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </symbol>
+        <symbol id="icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </symbol>
+        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </symbol>
+        <symbol id="icon-database" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </symbol>
+        <symbol id="icon-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </symbol>
+        <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+        </symbol>
+        <symbol id="icon-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+        </symbol>
+    </svg>
+
     <div class="container">
         <header class="header">
-            <div class="logo">🚀 File-Rocket</div>
+            <div class="logo">
+                <span class="emoji-icon">🚀</span>
+                <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-logo"/></svg>
+                File-Rocket
+            </div>
             <a href="/" class="back-link">
-                <span>🏠</span>
+                <span class="emoji-icon">🏠</span>
+                <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-home"/></svg>
                 <span>返回首页</span>
             </a>
         </header>
@@ -20,19 +77,23 @@
         <main class="upload-content">
             <div class="upload-card">
                 <h2>发送文件</h2>
-                
+
                 <!-- 文件选择阶段 -->
                 <div id="file-select-stage" class="stage active">
                     <div class="file-drop-zone" id="fileDropZone">
-                        <div class="upload-icon" style="font-size: 4rem; margin-bottom: 20px;">📁</div>
+                        <div class="upload-icon" style="font-size: 4rem; margin-bottom: 20px;">
+                            <span class="emoji-icon">📁</span>
+                            <svg class="svg-icon icon-xl" style="display:none; width:64px; height:64px;"><use href="#icon-folder"/></svg>
+                        </div>
                         <p style="color: var(--text-sub); margin-bottom: 30px;">点击或拖拽文件至此</p>
                         <input type="file" id="fileInput" hidden>
-                        <button class="btn-primary">选择文件</button>
+                        <button class="btn-primary" id="selectFileBtn">选择文件</button>
                     </div>
-                    
+
                     <!-- 移动端底部返回按钮 -->
                     <a href="/" class="mobile-back-btn">
-                        <span>🏠</span>
+                        <span class="emoji-icon">🏠</span>
+                        <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-home"/></svg>
                         <span>返回首页</span>
                     </a>
                 </div>
@@ -40,43 +101,55 @@
                 <!-- 生成取件码阶段 -->
                 <div id="code-generate-stage" class="stage">
                     <div class="file-details">
-                        <div class="file-icon">📄</div>
+                        <div class="file-icon">
+                            <span class="emoji-icon">📄</span>
+                            <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-file"/></svg>
+                        </div>
                         <div class="file-info">
                             <span class="file-name" id="fileName">文件名称</span>
                             <span class="file-size" id="fileSize">0 MB</span>
                         </div>
                     </div>
-                    
+
                     <!-- 传输模式选择 -->
                     <div class="transfer-mode-selector" style="width: 100%; margin: 30px 0;">
                         <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main);">选择传输方式</h3>
-                        
+
                         <div class="mode-option" id="memoryModeOption" style="display: none;">
                             <input type="radio" name="transferMode" value="memory" id="memoryMode" checked>
                             <label for="memoryMode">
-                                <div class="mode-icon">⚡</div>
+                                <div class="mode-icon">
+                                    <span class="emoji-icon">⚡</span>
+                                    <svg class="svg-icon" style="display:none"><use href="#icon-zap"/></svg>
+                                </div>
                                 <div class="mode-info">
                                     <strong>内存流式传输</strong>
                                     <span>实时中继，双方需同时在线</span>
                                 </div>
                             </label>
                         </div>
-                        
+
                         <div class="mode-option" id="storageModeOption" style="display: none;">
                             <input type="radio" name="transferMode" value="storage" id="storageMode">
                             <label for="storageMode">
-                                <div class="mode-icon">💾</div>
+                                <div class="mode-icon">
+                                    <span class="emoji-icon">💾</span>
+                                    <svg class="svg-icon" style="display:none"><use href="#icon-database"/></svg>
+                                </div>
                                 <div class="mode-info">
                                     <strong>服务器存储中转</strong>
                                     <span id="storageModeDesc">文件暂存24小时，支持异步下载</span>
                                 </div>
                             </label>
                         </div>
-                        
+
                         <div class="mode-option" id="p2pModeOption" style="display: none;">
                             <input type="radio" name="transferMode" value="p2p" id="p2pMode">
                             <label for="p2pMode">
-                                <div class="mode-icon">🔗</div>
+                                <div class="mode-icon">
+                                    <span class="emoji-icon">🔗</span>
+                                    <svg class="svg-icon" style="display:none"><use href="#icon-link"/></svg>
+                                </div>
                                 <div class="mode-info">
                                     <strong>P2P 直连传输</strong>
                                     <span>点对点连接，无需服务器中转</span>
@@ -84,7 +157,7 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <button class="btn-primary" id="generateCodeBtn" onclick="generateCode()">
                         生成取件码
                     </button>
@@ -95,13 +168,58 @@
                     <div class="pickup-code-display">
                         <p style="color: var(--text-sub); margin-bottom: 10px;">您的专属取件码</p>
                         <div class="pickup-code" id="pickupCode">----</div>
-                        <p class="code-hint" id="codeHint" style="font-size: 0.9rem; color: var(--text-sub);">请将此码分享给接收方 (30分钟有效)</p>
+                        <p class="code-hint" id="codeHint" style="font-size: 0.9rem; color: var(--text-sub);">请将此码分享给接收方 (发送端需保持在线)</p>
                     </div>
-                    
+
+                    <!-- 分享区域：二维码（点击复制链接） -->
+                    <div class="share-section" id="shareSection" style="display: none;">
+                        <div class="qrcode-container" id="qrcodeContainer" onclick="copyShareLink()" title="点击复制分享链接"></div>
+                        <p class="qrcode-hint" id="qrcodeHint" style="font-size: 0.8rem; color: var(--text-sub); margin: 8px 0 0;">扫码或点击二维码复制链接</p>
+                    </div>
+
                     <div class="status-indicator" id="statusIndicator">
                         <div class="pulse"></div>
+                        <div class="spinner-cube">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
                     </div>
                     <p id="statusText" style="color: var(--text-sub); font-weight: 500;">等待接收方连接...</p>
+                </div>
+
+                <!-- 已连接阶段 -->
+                <div id="connected-stage" class="stage">
+                    <div style="width: 100%; text-align: center;">
+                        <h3 style="margin-bottom: 20px;">接收方已连接</h3>
+                        <div class="file-details">
+                            <div class="file-icon">
+                                <span class="emoji-icon">📄</span>
+                                <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-file"/></svg>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name" id="connectedFileName">filename.ext</div>
+                                <div class="file-size" id="connectedFileSize">0 MB</div>
+                                <div class="file-type" id="connectedFileType" style="font-size: 0.8rem; color: var(--text-sub); margin-top: 4px;">Type</div>
+                            </div>
+                        </div>
+                        <div id="senderNatDisplay"></div>
+                        <div class="status-indicator">
+                            <div class="pulse"></div>
+                            <div class="spinner-cube">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <p id="connectedStatusText" style="color: var(--text-sub); font-weight: 500;">等待接收端接收文件...</p>
+                    </div>
                 </div>
 
                 <!-- 传输进行阶段 -->
@@ -121,7 +239,10 @@
                 <!-- 完成阶段 -->
                 <div id="complete-stage" class="stage">
                     <div class="success-message" style="text-align: center;">
-                        <div class="success-icon">✅</div>
+                        <div class="success-icon">
+                            <span class="emoji-icon">✅</span>
+                            <svg class="svg-icon icon-xl" style="display:none; width:64px; height:64px; color:#10b981;"><use href="#icon-check-circle"/></svg>
+                        </div>
                         <h3 style="margin-bottom: 15px;">传输完成</h3>
                         <p style="margin-bottom: 30px; color: var(--text-sub);">文件已成功发送</p>
                         <button class="btn-primary" onclick="location.reload()">发送新文件</button>
@@ -131,8 +252,8 @@
         </main>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="p2p-helper.js"></script>
+    <script src="sha256.min.js"></script>
+    <script src="qrcode.min.js"></script>
     <script src="upload.js"></script>
 </body>
 </html>

@@ -1,35 +1,46 @@
-FROM m.daocloud.io/docker.io/library/node:18-alpine
+# 构建阶段
+FROM golang:1.22-alpine AS builder
 
-# 设置工作目录
-WORKDIR /app
+# 安装构建依赖
+RUN apk add --no-cache git
 
-# 复制package.json和package-lock.json（如果存在）
-COPY package*.json ./
+WORKDIR /build
 
-# 安装依赖，使用npm ci以获得更快、更可靠的构建
-RUN npm ci --only=production && npm cache clean --force
+# 设置 Go 代理（使用国内镜像）
+ENV GOPROXY=https://goproxy.cn,direct
 
-# 复制应用程序源代码
+# 复制Go模块文件
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 复制源代码
 COPY . .
 
-# 创建非root用户以增强安全性
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S fileRocket -u 1001
+# 构建二进制文件
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o file-rocket server.go disk_space_unix.go
 
-# 更改应用程序文件的所有权
-RUN chown -R fileRocket:nodejs /app
-USER fileRocket
+# 运行阶段
+FROM alpine:latest
+
+# 安装必要的运行时依赖
+RUN apk add --no-cache ca-certificates tzdata
+
+WORKDIR /app
+
+# 从构建阶段复制二进制文件
+COPY --from=builder /build/file-rocket .
+
+# 复制静态文件目录（Web 界面必需）
+COPY --from=builder /build/public ./public
+
+# 创建上传目录
+RUN mkdir -p /app/files && chmod 755 /app
+
+# 声明数据卷（用于持久化上传文件和配置）
+VOLUME ["/app/files"]
 
 # 暴露端口
 EXPOSE 3000
 
-# 设置环境变量
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# 添加健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js || exit 1
-
 # 启动应用程序
-CMD ["node", "server.js"]
+CMD ["./file-rocket"]

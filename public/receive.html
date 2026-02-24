@@ -6,13 +6,56 @@
     <title>接收文件 - File-Rocket</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" id="favicon" href="favicon-classic.svg">
+    <!-- 主题初始化（防止闪烁） -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('file-rocket-theme') || 'minimal';
+            if (theme !== 'classic') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            var fav = document.getElementById('favicon');
+            if (fav) fav.href = theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+        })();
+    </script>
 </head>
 <body>
+    <!-- SVG 图标定义 -->
+    <svg style="display:none">
+        <symbol id="icon-logo" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z"/>
+            <path d="M4 8L16 14L28 8"/>
+            <path d="M16 14V22"/>
+        </symbol>
+        <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </symbol>
+        <symbol id="icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </symbol>
+        <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+        </symbol>
+        <symbol id="icon-x-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+        </symbol>
+    </svg>
+
     <div class="container">
         <header class="header">
-            <div class="logo">🚀 File-Rocket</div>
+            <div class="logo">
+                <span class="emoji-icon">🚀</span>
+                <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-logo"/></svg>
+                File-Rocket
+            </div>
             <a href="/" class="back-link">
-                <span>🏠</span>
+                <span class="emoji-icon">🏠</span>
+                <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-home"/></svg>
                 <span>返回首页</span>
             </a>
         </header>
@@ -20,21 +63,21 @@
         <main class="receive-content">
             <div class="receive-card">
                 <h2>接收文件</h2>
-                
+
                 <!-- 输入取件码阶段 -->
                 <div id="code-input-stage" class="stage active">
                     <div class="code-input-section">
                         <h3 style="margin-bottom: 40px; color: var(--text-main); font-weight: 700;">输入取件码</h3>
-                        
+
                         <div class="code-input-wrapper" onclick="document.getElementById('pickupCodeInput').focus()">
                             <div class="code-box active"></div>
                             <div class="code-box"></div>
                             <div class="code-box"></div>
                             <div class="code-box"></div>
-                            
-                            <input type="text" 
-                                   id="pickupCodeInput" 
-                                   maxlength="4" 
+
+                            <input type="text"
+                                   id="pickupCodeInput"
+                                   maxlength="4"
                                    autocomplete="off"
                                    style="position: absolute; opacity: 0; top: 0; left: 0; height: 100%; width: 100%; cursor: pointer;">
                         </div>
@@ -44,10 +87,11 @@
                         </button>
                         <p class="input-hint">请输入发送方提供的4位数字字母代码</p>
                     </div>
-                    
+
                     <!-- 移动端底部返回按钮 -->
                     <a href="/" class="mobile-back-btn">
-                        <span>🏠</span>
+                        <span class="emoji-icon">🏠</span>
+                        <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-home"/></svg>
                         <span>返回首页</span>
                     </a>
                 </div>
@@ -56,6 +100,14 @@
                 <div id="connecting-stage" class="stage">
                     <div class="status-indicator">
                         <div class="pulse"></div>
+                        <div class="spinner-cube">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
                     </div>
                     <h3 style="margin: 20px 0 10px;">正在连接...</h3>
                     <p style="color: var(--text-sub);">正在验证取件码并建立安全通道</p>
@@ -66,7 +118,10 @@
                     <div style="width: 100%; text-align: center;">
                         <h3 style="margin-bottom: 20px;">发现文件</h3>
                         <div class="file-details">
-                            <div class="file-icon">📄</div>
+                            <div class="file-icon">
+                                <span class="emoji-icon">📄</span>
+                                <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-file"/></svg>
+                            </div>
                             <div class="file-info">
                                 <div class="file-name" id="previewFileName">filename.ext</div>
                                 <div class="file-size" id="previewFileSize">0 MB</div>
@@ -75,7 +130,7 @@
                         </div>
                         <div style="display: flex; gap: 20px; justify-content: center;">
                             <button class="decline-btn" onclick="declineTransfer()">取消</button>
-                            <button class="accept-btn" onclick="acceptTransfer()">接收文件</button>
+                            <button class="accept-btn" id="acceptBtn" onclick="acceptTransfer()" disabled>等待连接...</button>
                         </div>
                     </div>
                 </div>
@@ -98,7 +153,10 @@
                 <!-- 完成阶段 -->
                 <div id="download-complete-stage" class="stage">
                     <div class="success-message" style="text-align: center;">
-                        <div class="success-icon">✅</div>
+                        <div class="success-icon">
+                            <span class="emoji-icon">✅</span>
+                            <svg class="svg-icon icon-xl" style="display:none; width:64px; height:64px; color:#10b981;"><use href="#icon-check-circle"/></svg>
+                        </div>
                         <h3 style="margin-bottom: 15px;">接收完成</h3>
                         <p style="margin-bottom: 30px; color: var(--text-sub);">文件已保存到您的设备</p>
                         <button class="btn-primary" onclick="location.reload()">接收新文件</button>
@@ -108,8 +166,11 @@
                 <!-- 错误阶段 -->
                 <div id="error-stage" class="stage">
                     <div class="error-message" style="text-align: center;">
-                        <div class="error-icon">❌</div>
-                        <h3 style="margin-bottom: 15px;">连接失败</h3>
+                        <div class="error-icon">
+                            <span class="emoji-icon">❌</span>
+                            <svg class="svg-icon icon-xl" style="display:none; width:64px; height:64px;"><use href="#icon-x-circle"/></svg>
+                        </div>
+                        <h3 id="errorTitle" style="margin-bottom: 15px;">连接失败</h3>
                         <p id="errorText" style="margin-bottom: 30px; color: var(--text-sub);">无效的取件码或连接已断开</p>
                         <button class="retry-btn" onclick="location.reload()">重试</button>
                     </div>
@@ -118,10 +179,22 @@
         </main>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- SHA-256 library -->
+    <script src="sha256.min.js"></script>
     <!-- StreamSaver.js for streaming downloads -->
-    <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
-    <script src="p2p-helper.js"></script>
+    <script src="StreamSaver.js"></script>
+    <script>
+        // 配置 StreamSaver.js 的 mitm 路径
+        // HTTPS/localhost：使用本地 mitm.html（快速可靠）
+        // HTTP：使用 CDN mitm（本地 Service Worker 在 HTTP 下无法注册）
+        if (window.streamSaver) {
+            if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                streamSaver.mitm = '/mitm.html';
+            } else {
+                streamSaver.mitm = 'https://jimmywarting.github.io/StreamSaver.js/mitm.html?version=2.0.6';
+            }
+        }
+    </script>
     <script src="receive.js"></script>
 </body>
 </html>

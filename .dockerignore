@@ -1,39 +1,37 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-
-# Files directory (uploaded files)
-files/
-
-# Docker files
-*.tar
-Dockerfile
-docker-compose.yml
-.dockerignore
-
 # Git
-.git/
+.git
 .gitignore
 
-# Documentation
-README.md
+# 构建产物
+*.exe
+file-rocket
+
+# Node.js 遗留文件（如果有）
+node_modules
+package-lock.json
+
+# 文档
 *.md
+README*.md
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# 配置文件（运行时生成）
+config.json
+storage_index.json
 
-# OS files
+# 上传目录
+files/
+
+# 临时文件
+*.log
+*.tmp
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
-*.log
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
 
-# Configuration (will be created at runtime)
-config.json
-
+# Docker
+docker-compose.yml

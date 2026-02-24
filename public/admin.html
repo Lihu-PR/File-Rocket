@@ -6,6 +6,7 @@
     <title>管理员控制台 - File-Rocket</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" id="favicon" href="favicon-classic.svg">
     <style>
         body {
             display: flex;
@@ -452,14 +453,193 @@
                 font-size: 0.75rem;
             }
         }
+
+        /* 主题选择器样式 */
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .theme-option {
+            position: relative;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary-color);
+        }
+
+        .theme-option[data-theme="classic"] {
+            background: linear-gradient(135deg, rgba(238, 119, 82, 0.1), rgba(231, 60, 126, 0.1), rgba(35, 166, 213, 0.1));
+        }
+
+        .theme-option[data-theme="classic"]:hover {
+            background: linear-gradient(135deg, rgba(238, 119, 82, 0.15), rgba(231, 60, 126, 0.15), rgba(35, 166, 213, 0.15));
+        }
+
+        .theme-option[data-theme="classic"].active {
+            border-color: #e73c7e;
+            box-shadow: 0 4px 15px rgba(231, 60, 126, 0.2);
+        }
+
+        .theme-option[data-theme="minimal"] {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+        }
+
+        .theme-option[data-theme="minimal"]:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .theme-option[data-theme="minimal"].active {
+            border-color: #1f2937;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-preview {
+            height: 80px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .theme-preview-classic {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 200% 200%;
+            animation: gradientBG 5s ease infinite;
+        }
+
+        .theme-preview-minimal {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+
+        .theme-preview-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .theme-preview-minimal .theme-preview-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        .theme-preview-icon {
+            font-size: 1.2rem;
+        }
+
+        .theme-preview-svg {
+            width: 20px;
+            height: 20px;
+            color: #1f2937;
+        }
+
+        .theme-preview-text {
+            color: #1f2937;
+        }
+
+        .theme-info {
+            text-align: center;
+        }
+
+        .theme-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .theme-info p {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+
+        .theme-check {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-option[data-theme="minimal"] .theme-check {
+            background: #1f2937;
+        }
+
+        .theme-check svg {
+            width: 14px;
+            height: 14px;
+            color: white;
+        }
+
+        .theme-option.active .theme-check {
+            display: flex;
+        }
+
+        @media (max-width: 480px) {
+            .theme-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .theme-preview {
+                height: 60px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- SVG 图标定义 -->
+    <svg style="display:none">
+        <symbol id="icon-logo" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z"/>
+            <path d="M4 8L16 14L28 8"/>
+            <path d="M16 14V22"/>
+        </symbol>
+        <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <line x1="10" y1="11" x2="10" y2="17"/>
+            <line x1="14" y1="11" x2="14" y2="17"/>
+        </symbol>
+    </svg>
+
     <div class="container">
         <div class="admin-container">
             <div class="admin-header">
                 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <span style="font-size: 2.2rem;">🚀</span>
+                    <span class="emoji-icon" style="font-size: 2.2rem;">🚀</span>
+                    <svg class="svg-icon" style="width: 2.2rem; height: 2.2rem;"><use href="#icon-logo"/></svg>
                     <span>File-Rocket 控制中心</span>
                 </h1>
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem; margin-top: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.1);">系统管理与监控面板</p>
@@ -552,8 +732,16 @@
                 </h2>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="file-action-btn refresh-btn" onclick="refreshFileList()">🔄 刷新列表</button>
-                    <button class="file-action-btn delete-all-btn" onclick="deleteAllFiles()">🗑️ 删除所有文件</button>
+                    <button class="file-action-btn refresh-btn" onclick="refreshFileList()">
+                        <span class="emoji-icon">🔄</span>
+                        <svg class="svg-icon" style="width: 16px; height: 16px; margin-right: 6px;"><use href="#icon-refresh"/></svg>
+                        刷新列表
+                    </button>
+                    <button class="file-action-btn delete-all-btn" onclick="deleteAllFiles()">
+                        <span class="emoji-icon">🗑️</span>
+                        <svg class="svg-icon" style="width: 16px; height: 16px; margin-right: 6px;"><use href="#icon-trash"/></svg>
+                        删除所有文件
+                    </button>
                 </div>
                 
                 <div class="storage-info">
@@ -600,7 +788,55 @@
                     </table>
                 </div>
             </div>
-            
+
+            <!-- 外观设置卡片 -->
+            <div class="admin-card">
+                <h2 style="margin-bottom: 20px;">外观设置</h2>
+                <p style="color: var(--text-sub); margin-bottom: 20px; font-size: 0.9rem;">选择界面主题风格，设置将应用到所有页面</p>
+
+                <div class="theme-selector">
+                    <div class="theme-option" data-theme="classic" onclick="selectTheme('classic')">
+                        <div class="theme-preview theme-preview-classic">
+                            <div class="theme-preview-card">
+                                <span class="theme-preview-icon">🚀</span>
+                                <span class="theme-preview-text">File-Rocket</span>
+                            </div>
+                        </div>
+                        <div class="theme-info">
+                            <h4>经典</h4>
+                            <p>彩虹渐变背景，活力四射</p>
+                        </div>
+                        <div class="theme-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="theme-option" data-theme="minimal" onclick="selectTheme('minimal')">
+                        <div class="theme-preview theme-preview-minimal">
+                            <div class="theme-preview-card">
+                                <svg class="theme-preview-svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z"/>
+                                    <path d="M4 8L16 14L28 8"/>
+                                    <path d="M16 14V22"/>
+                                </svg>
+                                <span class="theme-preview-text">File-Rocket</span>
+                            </div>
+                        </div>
+                        <div class="theme-info">
+                            <h4>极简</h4>
+                            <p>简洁高级，专注内容</p>
+                        </div>
+                        <div class="theme-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="admin-card">
                 <h2 style="margin-bottom: 20px;">安全设置</h2>
                 <div class="password-section">
@@ -617,6 +853,54 @@
     </div>
     
     <script>
+        // ==================== 主题管理 ====================
+        function initTheme() {
+            const savedTheme = localStorage.getItem('file-rocket-theme') || 'minimal';
+            applyTheme(savedTheme);
+            updateThemeSelector(savedTheme);
+        }
+
+        function applyTheme(themeName) {
+            if (themeName === 'classic') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', themeName);
+            }
+            var fav = document.getElementById('favicon');
+            if (fav) fav.href = themeName === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+        }
+
+        function updateThemeSelector(themeName) {
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.theme === themeName) {
+                    option.classList.add('active');
+                }
+            });
+        }
+
+        function selectTheme(themeName) {
+            localStorage.setItem('file-rocket-theme', themeName);
+            applyTheme(themeName);
+            updateThemeSelector(themeName);
+            // 同步到服务端，让所有用户生效
+            const token = sessionStorage.getItem('adminToken');
+            if (token) {
+                fetch('/api/admin/config', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': token
+                    },
+                    body: JSON.stringify({ theme: themeName })
+                }).catch(err => console.error('主题同步失败:', err));
+            }
+        }
+
+        // 立即初始化主题（防止闪烁）
+        initTheme();
+
+        // ==================== 认证检查 ====================
         // 检查认证
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
@@ -677,6 +961,13 @@
                     document.getElementById('activeSessions').textContent = data.stats.activeSessions || 0;
                     document.getElementById('todayTransfers').textContent = data.stats.todayTransfers || 0;
                     document.getElementById('storedFiles').textContent = data.stats.storedFiles || 0;
+                }
+
+                // 同步服务端主题
+                if (data.theme) {
+                    localStorage.setItem('file-rocket-theme', data.theme);
+                    applyTheme(data.theme);
+                    updateThemeSelector(data.theme);
                 }
             } catch (error) {
                 console.error('加载配置失败:', error);

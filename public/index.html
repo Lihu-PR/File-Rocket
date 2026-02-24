@@ -8,12 +8,59 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" id="favicon" href="favicon-classic.svg">
+    <!-- 主题初始化（防止闪烁） -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('file-rocket-theme') || 'minimal';
+            if (theme !== 'classic') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            var fav = document.getElementById('favicon');
+            if (fav) fav.href = theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+        })();
+    </script>
 </head>
 <body>
+    <!-- SVG 图标引用 -->
+    <svg style="display:none">
+        <symbol id="icon-logo" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z"/>
+            <path d="M4 8L16 14L28 8"/>
+            <path d="M16 14V22"/>
+        </symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+        </symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </symbol>
+        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </symbol>
+        <symbol id="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </symbol>
+        <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </symbol>
+    </svg>
+
     <div class="container">
         <header class="header">
             <div class="logo">
-                <span>🚀</span>
+                <span class="emoji-icon">🚀</span>
+                <svg class="svg-icon icon-lg" style="display:none"><use href="#icon-logo"/></svg>
                 <span>File-Rocket</span>
             </div>
             <p class="subtitle">新一代安全流式文件传输</p>
@@ -22,14 +69,20 @@
         <main class="main-content">
             <div class="action-cards">
                 <div class="card" onclick="goToUpload()">
-                    <div class="card-icon">📤</div>
+                    <div class="card-icon">
+                        <span class="emoji-icon">📤</span>
+                        <svg class="svg-icon icon-2xl" style="display:none"><use href="#icon-upload"/></svg>
+                    </div>
                     <h3>发送文件</h3>
                     <p>极速流式上传，生成专属取件码</p>
                     <button class="btn-primary">开始发送</button>
                 </div>
 
                 <div class="card" onclick="goToReceive()">
-                    <div class="card-icon">📥</div>
+                    <div class="card-icon">
+                        <span class="emoji-icon">📥</span>
+                        <svg class="svg-icon icon-2xl" style="display:none"><use href="#icon-download"/></svg>
+                    </div>
                     <h3>接收文件</h3>
                     <p>输入取件码，即刻开始下载</p>
                     <button class="btn-primary">开始接收</button>
@@ -38,37 +91,44 @@
 
             <div class="features">
                 <div class="feature">
-                    <span>🔒</span>
+                    <span class="emoji-icon">🔒</span>
+                    <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-lock"/></svg>
                     <span>端到端加密</span>
                 </div>
                 <div class="feature">
-                    <span>⚡</span>
+                    <span class="emoji-icon">⚡</span>
+                    <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-zap"/></svg>
                     <span>内存流式传输</span>
                 </div>
                 <div class="feature">
-                    <span>🌐</span>
+                    <span class="emoji-icon">🌐</span>
+                    <svg class="svg-icon icon-sm" style="display:none"><use href="#icon-globe"/></svg>
                     <span>全平台支持</span>
                 </div>
             </div>
         </main>
 
         <footer class="footer">
-            <p id="copyrightText" style="cursor: pointer;">&copy; 2025 File-Rocket 4.0 • Designed for Speed</p>
+            <p id="copyrightText" style="cursor: pointer;">&copy; 2026 File-Rocket 5.0 • Designed for Speed</p>
         </footer>
     </div>
 
     <!-- 管理员登录弹窗 -->
     <div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: white; padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
-            <h2 style="margin-bottom: 20px; color: var(--text-main);">🔐 管理员登录</h2>
-            <input type="password" id="adminPasswordInput" placeholder="请输入管理员密码" 
+            <h2 style="margin-bottom: 20px; color: var(--text-main);">
+                <span class="emoji-icon">🔐</span>
+                <svg class="svg-icon" style="display:none; width:24px; height:24px; vertical-align:middle"><use href="#icon-key"/></svg>
+                管理员登录
+            </h2>
+            <input type="password" id="adminPasswordInput" placeholder="请输入管理员密码"
                    style="width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; margin-bottom: 20px;">
             <div style="display: flex; gap: 15px;">
-                <button onclick="closeAdminModal()" 
+                <button onclick="closeAdminModal()"
                         style="flex: 1; padding: 15px; background: #e5e7eb; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                     取消
                 </button>
-                <button onclick="adminLogin()" 
+                <button onclick="adminLogin()" class="admin-login-btn"
                         style="flex: 1; padding: 15px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                     登录
                 </button>
@@ -76,26 +136,33 @@
         </div>
     </div>
 
+    <style>
+        /* 极简主题下管理员登录按钮样式 */
+        [data-theme="minimal"] .admin-login-btn {
+            background: #1f2937 !important;
+        }
+    </style>
+
     <script>
         function goToUpload() {
-            window.location.href = '/upload.html';
+            window.location.href = '/upload';
         }
 
         function goToReceive() {
-            window.location.href = '/receive.html';
+            window.location.href = '/receive';
         }
 
         // 管理员入口
         let clickCount = 0;
         let clickTimer = null;
-        
+
         document.getElementById('copyrightText').addEventListener('click', function() {
             clickCount++;
-            
+
             if (clickTimer) {
                 clearTimeout(clickTimer);
             }
-            
+
             if (clickCount >= 4) {
                 showAdminModal();
                 clickCount = 0;
@@ -105,25 +172,25 @@
                 }, 2000);
             }
         });
-        
+
         function showAdminModal() {
             document.getElementById('adminLoginModal').style.display = 'flex';
             document.getElementById('adminPasswordInput').focus();
         }
-        
+
         function closeAdminModal() {
             document.getElementById('adminLoginModal').style.display = 'none';
             document.getElementById('adminPasswordInput').value = '';
         }
-        
+
         async function adminLogin() {
             const password = document.getElementById('adminPasswordInput').value;
-            
+
             if (!password) {
                 alert('请输入密码');
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
@@ -132,12 +199,12 @@
                     },
                     body: JSON.stringify({ password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     sessionStorage.setItem('adminToken', data.token);
-                    window.location.href = '/admin.html';
+                    window.location.href = '/admin';
                 } else {
                     alert(data.message || '登录失败');
                 }
@@ -145,20 +212,34 @@
                 alert('登录失败：' + error.message);
             }
         }
-        
+
         // 回车登录
         document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 adminLogin();
             }
         });
-        
+
         // 点击模态框外部关闭
         document.getElementById('adminLoginModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeAdminModal();
             }
         });
+
+        // 从服务端同步主题
+        fetch('/api/features').then(r => r.json()).then(data => {
+            if (data.theme && data.theme !== localStorage.getItem('file-rocket-theme')) {
+                localStorage.setItem('file-rocket-theme', data.theme);
+                if (data.theme === 'classic') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else {
+                    document.documentElement.setAttribute('data-theme', data.theme);
+                }
+                var fav = document.getElementById('favicon');
+                if (fav) fav.href = data.theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+            }
+        }).catch(() => {});
     </script>
 </body>
 </html>

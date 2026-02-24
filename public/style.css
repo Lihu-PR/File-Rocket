@@ -1,4 +1,4 @@
-/* File-Rocket 4.0 Design System */
+/* File-Rocket 5.0 Design System */
 :root {
     --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     --primary-color: #6366f1;
@@ -437,9 +437,60 @@ body {
     background: #f8fafc;
     border-radius: var(--radius-md);
     padding: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     border: 2px dashed var(--primary-color);
     width: 100%;
+}
+
+/* 分享区域 */
+.share-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.qrcode-container {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: inline-block;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.qrcode-container:hover {
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.qrcode-container img {
+    display: block;
+}
+
+.btn-share {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 50px;
+    padding: 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-share:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-share:active {
+    transform: scale(0.98);
 }
 
 .pickup-code {
@@ -1020,24 +1071,624 @@ body {
     .container {
         padding: 10px 20px;
     }
-    
+
     .header {
         margin-bottom: 20px;
     }
-    
+
     .header h1 {
         font-size: 1.8rem;
     }
-    
+
     .card, .upload-card, .receive-card {
         padding: 20px 25px;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
     }
-    
+
     .back-link {
         top: 10px;
         left: 10px;
         padding: 10px;
     }
+}
+
+/* ==================== 极简主题 ==================== */
+[data-theme="minimal"] {
+    --primary-gradient: #1f2937;
+    --primary-color: #1f2937;
+    --secondary-color: #374151;
+    --glass-bg: #ffffff;
+    --glass-border: #e5e7eb;
+    --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --text-main: #1f2937;
+    --text-sub: #6b7280;
+    --text-light: #6b7280;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+
+    /* 极简主题专用变量 */
+    --minimal-bg: #f9fafb;
+    --minimal-card-bg: #ffffff;
+    --minimal-border: #e5e7eb;
+    --minimal-border-hover: #d1d5db;
+    --minimal-btn-bg: #1f2937;
+    --minimal-btn-hover: #374151;
+}
+
+/* 极简主题 - 背景 */
+[data-theme="minimal"] body {
+    background: var(--minimal-bg);
+    animation: none;
+}
+
+/* 极简主题 - 卡片 */
+[data-theme="minimal"] .card,
+[data-theme="minimal"] .upload-card,
+[data-theme="minimal"] .receive-card {
+    background: var(--minimal-card-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid var(--minimal-border);
+    box-shadow: var(--glass-shadow);
+}
+
+[data-theme="minimal"] .card:hover {
+    border-color: var(--minimal-border-hover);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transform: translateY(-2px);
+    background: var(--minimal-card-bg);
+}
+
+/* 极简主题 - 按钮 */
+[data-theme="minimal"] .btn-primary,
+[data-theme="minimal"] .card-button,
+[data-theme="minimal"] .select-file-btn,
+[data-theme="minimal"] .connect-btn,
+[data-theme="minimal"] .generate-code-btn,
+[data-theme="minimal"] .new-transfer-btn,
+[data-theme="minimal"] .retry-btn,
+[data-theme="minimal"] .send-btn,
+[data-theme="minimal"] .receive-btn {
+    background: var(--minimal-btn-bg) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="minimal"] .btn-primary:hover,
+[data-theme="minimal"] .card-button:hover,
+[data-theme="minimal"] .select-file-btn:hover,
+[data-theme="minimal"] .connect-btn:hover,
+[data-theme="minimal"] .send-btn:hover,
+[data-theme="minimal"] .receive-btn:hover {
+    background: var(--minimal-btn-hover) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px) !important;
+}
+
+[data-theme="minimal"] .btn-primary::after,
+[data-theme="minimal"] .card-button::after {
+    display: none;
+}
+
+/* 极简主题 - 返回按钮 */
+[data-theme="minimal"] .back-link {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+    color: var(--text-main);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+}
+
+[data-theme="minimal"] .back-link:hover {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+    box-shadow: none;
+}
+
+/* 极简主题 - Logo */
+[data-theme="minimal"] .logo {
+    color: var(--text-main);
+    text-shadow: none;
+}
+
+/* 极简主题 - 副标题 */
+[data-theme="minimal"] .subtitle {
+    color: var(--text-sub);
+}
+
+/* 极简主题 - 特性标签 */
+[data-theme="minimal"] .feature {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+    color: var(--text-sub);
+    backdrop-filter: none;
+}
+
+[data-theme="minimal"] .feature:hover {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+}
+
+/* 极简主题 - 页脚 */
+[data-theme="minimal"] .footer {
+    color: var(--text-sub);
+}
+
+/* 极简主题 - 文件拖放区 */
+[data-theme="minimal"] .file-drop-zone {
+    background: var(--minimal-card-bg);
+    border: 2px dashed var(--minimal-border);
+}
+
+[data-theme="minimal"] .file-drop-zone:hover,
+[data-theme="minimal"] .file-drop-zone.drag-over {
+    border-color: var(--minimal-border-hover);
+    background: var(--minimal-bg);
+}
+
+/* 极简主题 - 取件码输入 */
+[data-theme="minimal"] .code-input-section {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .code-box {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+    color: var(--text-main);
+}
+
+[data-theme="minimal"] .code-box.active {
+    border-color: var(--text-main);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="minimal"] .code-box.filled {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+}
+
+/* 极简主题 - 取件码展示 */
+[data-theme="minimal"] .pickup-code-display {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .pickup-code {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-main);
+    color: var(--text-main);
+}
+
+/* 极简主题 - 进度条 */
+[data-theme="minimal"] .progress-container {
+    background: var(--minimal-border);
+}
+
+[data-theme="minimal"] .progress-fill {
+    background: var(--minimal-btn-bg);
+    box-shadow: none;
+}
+
+/* 默认隐藏3D立方体，显示脉冲动画 */
+.spinner-cube {
+    display: none;
+}
+
+/* 极简主题 - 状态指示器（3D旋转立方体） */
+[data-theme="minimal"] .status-indicator {
+    background: transparent;
+    box-shadow: none;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="minimal"] .status-indicator::before,
+[data-theme="minimal"] .status-indicator::after {
+    display: none;
+}
+
+[data-theme="minimal"] .status-indicator .pulse {
+    display: none;
+}
+
+[data-theme="minimal"] .status-indicator .spinner-cube {
+    display: block;
+    width: 44px;
+    height: 44px;
+    animation: spinnerCube 2s infinite ease;
+    transform-style: preserve-3d;
+}
+
+[data-theme="minimal"] .spinner-cube > div {
+    background-color: transparent;
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    border: 3px solid #1f2937;
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(1) {
+    transform: translateZ(-22px) rotateY(180deg);
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(2) {
+    transform: rotateY(-270deg) translateX(50%);
+    transform-origin: top right;
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(3) {
+    transform: rotateY(270deg) translateX(-50%);
+    transform-origin: center left;
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(4) {
+    transform: rotateX(90deg) translateY(-50%);
+    transform-origin: top center;
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(5) {
+    transform: rotateX(-90deg) translateY(50%);
+    transform-origin: bottom center;
+}
+
+[data-theme="minimal"] .spinner-cube div:nth-of-type(6) {
+    transform: translateZ(22px);
+}
+
+@keyframes spinnerCube {
+    0% {
+        transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
+    }
+    50% {
+        transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
+    }
+    100% {
+        transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
+    }
+}
+
+/* 极简主题 - 文件详情 */
+[data-theme="minimal"] .file-details {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+/* 极简主题 - 传输模式选择器 */
+[data-theme="minimal"] .transfer-mode-selector {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .mode-option label {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .mode-option input[type="radio"]:checked + label {
+    border-color: var(--text-main);
+    background: var(--minimal-bg);
+    box-shadow: none;
+}
+
+[data-theme="minimal"] .mode-option label:hover {
+    border-color: var(--minimal-border-hover);
+}
+
+/* 极简主题 - 传输模式图标尺寸 */
+[data-theme="minimal"] .mode-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+[data-theme="minimal"] .mode-icon .svg-icon {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* 极简主题 - NAT 检测 */
+[data-theme="minimal"] .nat-detection {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .nat-type {
+    background: var(--minimal-btn-bg);
+}
+
+[data-theme="minimal"] .nat-box {
+    background: var(--minimal-card-bg) !important;
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .nat-info {
+    background: rgba(31, 41, 55, 0.05) !important;
+    border: 1px solid var(--minimal-border);
+}
+
+/* 极简主题 - 分享按钮 */
+[data-theme="minimal"] .btn-share {
+    background: var(--minimal-bg);
+    color: var(--text-main);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .btn-share:hover {
+    background: var(--minimal-btn-bg);
+    color: white;
+    border-color: var(--minimal-btn-bg);
+}
+
+/* 极简主题 - 接受/拒绝按钮 */
+[data-theme="minimal"] .accept-btn {
+    background: var(--minimal-btn-bg);
+    box-shadow: none;
+}
+
+[data-theme="minimal"] .accept-btn:hover {
+    background: var(--minimal-btn-hover);
+    box-shadow: none;
+}
+
+[data-theme="minimal"] .decline-btn {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .decline-btn:hover {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+}
+
+/* 极简主题 - 标题渐变文字恢复为普通颜色 */
+[data-theme="minimal"] .upload-card h2,
+[data-theme="minimal"] .receive-card h2 {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-main);
+    color: var(--text-main);
+}
+
+/* 极简主题 - 移动端底部返回按钮 */
+[data-theme="minimal"] .mobile-back-btn {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+    color: var(--text-main);
+    box-shadow: none;
+}
+
+[data-theme="minimal"] .mobile-back-btn:hover {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+    box-shadow: none;
+}
+
+/* 极简主题 - 图标容器 */
+[data-theme="minimal"] .card-icon {
+    filter: none;
+}
+
+/* 极简主题 - SVG 图标样式 */
+[data-theme="minimal"] .icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+[data-theme="minimal"] .icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+[data-theme="minimal"] .icon-lg {
+    width: 32px;
+    height: 32px;
+}
+
+[data-theme="minimal"] .icon-xl {
+    width: 48px;
+    height: 48px;
+}
+
+/* 通用图标样式 */
+.icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-lg {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-xl {
+    width: 48px;
+    height: 48px;
+}
+
+.icon-2xl {
+    width: 56px;
+    height: 56px;
+}
+
+/* 默认/经典主题下显示 emoji，隐藏 SVG 图标 */
+.emoji-icon {
+    display: inline !important;
+}
+
+.svg-icon {
+    display: none !important;
+}
+
+/* 极简主题下隐藏 emoji，显示 SVG 图标（必须在后面以覆盖默认规则） */
+[data-theme="minimal"] .emoji-icon {
+    display: none !important;
+}
+
+[data-theme="minimal"] .svg-icon {
+    display: inline-flex !important;
+}
+
+/* ==================== 极简主题 - 管理员页面 ==================== */
+
+/* 管理员卡片 */
+[data-theme="minimal"] .admin-card {
+    background: var(--minimal-card-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid var(--minimal-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 管理员页面标题 */
+[data-theme="minimal"] .admin-header h1 {
+    color: var(--text-main) !important;
+    text-shadow: none !important;
+}
+
+[data-theme="minimal"] .admin-header p {
+    color: var(--text-sub) !important;
+    text-shadow: none !important;
+}
+
+/* 功能开关区域 */
+[data-theme="minimal"] .feature-toggle {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .feature-toggle:hover {
+    background: var(--minimal-bg);
+    border-color: var(--minimal-border-hover);
+}
+
+/* 统计数据框 */
+[data-theme="minimal"] .stat-box {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .stat-box .value {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-main);
+    color: var(--text-main);
+}
+
+/* 信息框 */
+[data-theme="minimal"] .info-box {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+/* 文件表格 */
+[data-theme="minimal"] .file-table {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .file-table th {
+    background: var(--minimal-bg);
+    border-bottom: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .file-table td {
+    border-bottom: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .file-table tr:hover {
+    background: var(--minimal-bg);
+}
+
+/* 密码设置区域 */
+[data-theme="minimal"] .password-section {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .password-section input {
+    background: var(--minimal-card-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .password-section input:focus {
+    border-color: var(--text-main);
+    outline: none;
+}
+
+[data-theme="minimal"] .password-section button {
+    background: var(--minimal-btn-bg);
+}
+
+[data-theme="minimal"] .password-section button:hover {
+    background: var(--minimal-btn-hover);
+}
+
+/* 进度条 */
+[data-theme="minimal"] .progress-bar {
+    background: var(--minimal-border);
+}
+
+/* 开关滑块 */
+[data-theme="minimal"] input:checked + .slider {
+    background: var(--minimal-btn-bg);
+}
+
+/* 刷新按钮 */
+[data-theme="minimal"] .refresh-btn {
+    background: var(--minimal-btn-bg);
+}
+
+[data-theme="minimal"] .refresh-btn:hover {
+    background: var(--minimal-btn-hover);
+    box-shadow: none;
+}
+
+/* 存储设置区域 */
+[data-theme="minimal"] #storageSettings {
+    background: var(--minimal-bg) !important;
+    border: 1px solid var(--minimal-border);
+}
+
+/* 主题选择器在极简主题下的样式调整 */
+[data-theme="minimal"] .theme-option {
+    background: var(--minimal-bg);
+    border: 1px solid var(--minimal-border);
+}
+
+[data-theme="minimal"] .theme-option:hover {
+    border-color: var(--minimal-border-hover);
+}
+
+[data-theme="minimal"] .theme-option.active {
+    border-color: var(--text-main);
+}
+
+[data-theme="minimal"] .theme-option[data-theme="classic"] {
+    background: linear-gradient(135deg, rgba(238, 119, 82, 0.08), rgba(231, 60, 126, 0.08), rgba(35, 166, 213, 0.08));
+}
+
+[data-theme="minimal"] .theme-check {
+    background: var(--minimal-btn-bg);
 }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - File-Rocket</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" id="favicon" href="favicon-classic.svg">
+    <!-- 主题初始化（防止闪烁） -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('file-rocket-theme') || 'minimal';
+            if (theme !== 'classic') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            var fav = document.getElementById('favicon');
+            if (fav) fav.href = theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+        })();
+    </script>
+    <style>
+        .not-found-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .not-found-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: 80px 60px;
+            text-align: center;
+            box-shadow: var(--glass-shadow);
+            max-width: 560px;
+            width: 100%;
+            animation: fadeInUp 0.6s ease-out;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .not-found-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .not-found-code {
+            font-size: 9rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        .not-found-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 14px;
+        }
+
+        .not-found-desc {
+            color: var(--text-sub);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .not-found-card {
+                padding: 60px 30px;
+                margin: 10px;
+            }
+
+            .not-found-code {
+                font-size: 6rem;
+            }
+
+            .not-found-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="padding-top: 0;">
+        <main class="not-found-content">
+            <div class="not-found-card">
+                <div class="not-found-code">404</div>
+                <h1 class="not-found-title">页面走丢了</h1>
+                <p class="not-found-desc">你访问的页面不存在或已被移除</p>
+                <a href="/" class="btn-primary">返回首页</a>
+            </div>
+        </main>
+    </div>
+    <script>
+        fetch('/api/features').then(r => r.json()).then(data => {
+            if (data.theme && data.theme !== localStorage.getItem('file-rocket-theme')) {
+                localStorage.setItem('file-rocket-theme', data.theme);
+                if (data.theme === 'classic') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else {
+                    document.documentElement.setAttribute('data-theme', data.theme);
+                }
+                var fav = document.getElementById('favicon');
+                if (fav) fav.href = data.theme === 'minimal' ? 'favicon-minimal.svg' : 'favicon-classic.svg';
+            }
+        }).catch(() => {});
+    </script>
+</body>
+</html>
